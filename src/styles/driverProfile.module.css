@@ -1,0 +1,104 @@
+.driverProfileContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Row with Booking, License, and Vehicle Selection */
+.row {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+/* Booking Component */
+.bookingComponent {
+    flex: 1;
+    padding: 16px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #f9f9f9;
+    text-align: center;
+}
+
+/* License Card */
+.licenseCard {
+    flex: 1;
+    padding: 16px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #f9f9f9;
+}
+
+.licenseHeader {
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.licenseBody {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    align-items: center;
+}
+
+.photoContainer {
+    flex-shrink: 0;
+}
+
+.details {
+    flex: 1;
+}
+
+/* Vehicle Selection */
+.vehicleSelection {
+    flex: 1;
+    padding: 16px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #f9f9f9;
+}
+
+.vehicleList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.vehicleItem {
+    cursor: pointer;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    padding: 8px;
+    text-align: center;
+    transition: border-color 0.3s;
+}
+
+.vehicleItem:hover,
+.vehicleItem.selected {
+    border-color: #007bff;
+}
+
+.vehicleImage {
+    width: 80px;
+    height: 80px;
+}
+
+/* Map Container */
+.mapContainer {
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+@media (max-width: 768px) {
+    .row {
+        flex-direction: column;
+    }
+}

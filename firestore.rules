@@ -1,0 +1,86 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 🔐 User Profiles: Allow any authenticated user to read/write their profile.
+    match /users/{userId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // 💬 Chat Messages: Allow any authenticated user to read/write messages.
+    match /chats/{chatId}/messages/{messageId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // 🛑 Admin Panel: For temporary testing, allow any authenticated user.
+    match /admin/{doc} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // 📢 Blog Posts: Allow creation, update and deletion if the user is authenticated.
+    match /blogPosts/{postId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // 🎟️ Event Posts: Allow any authenticated user to create and modify events.
+    match /events/{eventId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // 🚘 VIBER - Ride Booking System: Allow all authenticated users to create, update, and delete rides.
+    match /rides/{rideId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // 🚖 Drivers: Allow any authenticated user to view and update driver data.
+    match /drivers/{driverId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // 💵 Payments: Allow any authenticated user to read/write payment records (for testing).
+    match /payments/{paymentId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // 📌 Notifications: Allow any authenticated user to read and create notifications.
+    match /notifications/{notificationId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // 🎯 Groups: 
+    // Schema: 
+    //   - name: string
+    //   - description: string
+    //   - memberCount: number
+    //   - image: string
+    //   - createdBy: string (User ID)
+    match /groups/{groupId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // 🎯 Group Members:
+    // Schema:
+    //   - joinedAt: timestamp
+    //   - role: "member" | "admin"
+    // Users can read group membership data and write to their own membership document.
+    match /groupMembers/{groupId}/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // 🎥 Video Rooms:
+    // Schema:
+    //   - active: boolean
+    //   - host: string (User ID)
+    //   - participants: array of userIds
+    match /videoRooms/{groupId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // ⛔ Default: Deny everything else.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
