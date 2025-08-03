@@ -29,3 +29,11 @@
 .small {
   font-size: 0.75rem;
 }
+
+/* In your global CSS or component CSS file */
+.route-preview-map {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+}
