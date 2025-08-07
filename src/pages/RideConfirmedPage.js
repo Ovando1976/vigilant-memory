@@ -32,6 +32,20 @@ export default function RideConfirmedPage() {
   const [ride, setRide] = useState(() => location.state?.ride || readRide(rideId));
   const [paying, setPaying] = useState(false);
 
+  /* --------------------------- Cancel ride handler --------------------------- */
+  const handleCancelRide = () => {
+    try {
+      const store = JSON.parse(localStorage.getItem('rideRequests') || '{}');
+      if (store[rideId]) {
+        store[rideId] = { ...store[rideId], status: 'cancelled' };
+        localStorage.setItem('rideRequests', JSON.stringify(store));
+      }
+    } catch (err) {
+      logger.warn('Failed to cancel ride', err);
+    }
+    navigate('/home');
+  };
+
   /* keep state in sync if another tab updates localStorage */
   useEffect(() => {
     const sync = (e) => {
@@ -121,6 +135,14 @@ export default function RideConfirmedPage() {
 
         <Button variant="outlined" onClick={() => navigate('/home')}>
           Return Home
+        </Button>
+
+        <Button
+          variant="outlined"
+          color="error"
+          onClick={handleCancelRide}
+        >
+          Cancel Ride
         </Button>
 
         <Button
