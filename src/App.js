@@ -27,6 +27,7 @@ import Ridesharing from "./pages/Ridesharing";
 import DriverDashboard from "./pages/DriverDashboard";
 import DriverProfilePage from "./pages/DriverProfilePage";
 import DriverRidesPage from "./pages/DriverRidesPage";
+import DriverEarningsPage from "./pages/DriverEarningsPage";
 import DriverSettingsPage from "./pages/DriverSettingsPage";
 import TestMap from "./pages/TestMap";
 import UserRideHistory from "./pages/UserRideHistory";
@@ -109,6 +110,7 @@ function AppShell() {
           <Route index element={<Navigate to="profile" replace />} />
           <Route path="profile" element={<DriverProfilePage />} />
           <Route path="requests" element={<DriverRidesPage />} />
+          <Route path="earnings" element={<DriverEarningsPage />} />
           <Route path="settings" element={<DriverSettingsPage />} />
         </Route>
 

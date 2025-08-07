@@ -7,7 +7,6 @@ import {
   FaTimes,
   FaTachometerAlt,
   FaListAlt,
-  FaDollarSign,
   FaCog,
 } from "react-icons/fa";
 import clsx from "clsx";
@@ -17,7 +16,6 @@ import { useArgonController } from "../../context/ArgonControllerContext";
 const baseLinks = [
   { to: "/driver",          icon: FaTachometerAlt, label: "Dashboard", end: true },
   { to: "/driver/requests", icon: FaListAlt,       label: "Rides"                },
-  { to: "/driver/earnings", icon: FaDollarSign,    label: "Earnings", roles: ["owner", "manager"] },
   { to: "/driver/settings", icon: FaCog,           label: "Settings"             },
 ];
 
