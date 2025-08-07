@@ -12,6 +12,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { taxiRates } from "../data/taxiRates";
 import { getLocalTaxiRate } from "../lib/getLocalTaxiRate";
+import logger from "../logger";
 
 export default function RideRequestPage() {
   const navigate = useNavigate();
@@ -31,7 +32,7 @@ export default function RideRequestPage() {
       const summary = getLocalTaxiRate(pickup, dropoff, passengerCount);
       setFarePreview(summary);
     } catch (err) {
-      console.error("Fare preview failed:", err);
+      logger.error("Fare preview failed:", err);
       setFarePreview(null);
     }
   };
@@ -55,7 +56,7 @@ export default function RideRequestPage() {
         },
       });
     } catch (error) {
-      console.error("Failed to preview ride:", error);
+      logger.error("Failed to preview ride:", error);
       alert("Could not continue to review page.");
     } finally {
       setLoading(false);
