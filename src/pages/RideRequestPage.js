@@ -11,9 +11,15 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { taxiRates } from "../data/taxiRates";
+import { locationCoords } from "../data/locationCoords";
 import { getLocalTaxiRate } from "../lib/getLocalTaxiRate";
 import { createRideRequest } from "../lib/createRideRequest";
 import { locationCoords } from "../data/locationCoords";
+
+import logger from "../logger";
+
+import { createRideRequest } from "../lib/createRideRequest";
+
 
 export default function RideRequestPage() {
   const navigate = useNavigate();
@@ -33,7 +39,7 @@ export default function RideRequestPage() {
       const summary = getLocalTaxiRate(pickup, dropoff, passengerCount);
       setFarePreview(summary);
     } catch (err) {
-      console.error("Fare preview failed:", err);
+      logger.error("Fare preview failed:", err);
       setFarePreview(null);
     }
   };
@@ -59,7 +65,7 @@ export default function RideRequestPage() {
 
       navigate(`/ridesharing/review/${rideId}`);
     } catch (error) {
-      console.error("Failed to preview ride:", error);
+      logger.error("Failed to preview ride:", error);
       alert("Could not continue to review page.");
     } finally {
       setLoading(false);
