@@ -10,6 +10,10 @@ import { getLocalTaxiRate } from "../lib/getLocalTaxiRate";
 import { createRideRequest } from "../lib/createRideRequest";
 
 import logger from "../logger";
+import useSnackbar from "../hooks/useSnackbar";
+
+
+import logger from "../logger";
 
 
 import { auth } from "../lib/firebase";
@@ -19,9 +23,14 @@ import logger from "../logger";
 
 
 
+
 export default function RideRequestPage() {
   const navigate = useNavigate();
+
+  const { showSnackbar, SnackbarComponent } = useSnackbar();
+
   const { t } = useTranslation();
+
   const [pickup, setPickup] = useState("");
   const [dropoff, setDropoff] = useState("");
   const [passengerCount, setPassengerCount] = useState("1");
@@ -67,7 +76,11 @@ export default function RideRequestPage() {
 
   const handleSubmit = async () => {
     if (!pickup || !dropoff || pickup === dropoff) {
+
+      showSnackbar("Please select valid locations.", "warning");
+
       alert(t("selectValidLocations"));
+
       return;
     }
 
@@ -105,9 +118,13 @@ export default function RideRequestPage() {
     } catch (error) {
       logger.error("Failed to preview ride:", error);
 
+      showSnackbar("Could not continue to review page.", "error");
+
+
       alert(t("couldNotContinue"));
 
       setErrors({ form: "Could not continue to review page." });
+
 
     } finally {
       setLoading(false);
@@ -115,7 +132,9 @@ export default function RideRequestPage() {
   };
 
   return (
-    <Box p={4}>
+    <>
+      <SnackbarComponent />
+      <Box p={4}>
       <Paper elevation={3} sx={{ maxWidth: 500, mx: "auto", p: 4 }}>
         <Typography variant="h5" fontWeight="bold" gutterBottom>
           {t("requestRide")}
@@ -200,6 +219,7 @@ export default function RideRequestPage() {
           {loading ? t("loading") : t("reviewRide")}
         </Button>
       </Paper>
-    </Box>
+      </Box>
+    </>
   );
 }
