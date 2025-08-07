@@ -4,7 +4,11 @@ import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { loadStripe } from '@stripe/stripe-js';
 import { useTranslation } from 'react-i18next';
 import logger from '../logger';
+
+import useSnackbar from '../hooks/useSnackbar';
+
 import { subscribeToRide } from '../lib/rideService';
+
 
 /* ------------- Stripe initialisation (CRA uses process.env) ------------- */
 const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
@@ -13,7 +17,11 @@ export default function RideConfirmedPage() {
   const navigate   = useNavigate();
   const location   = useLocation();
   const { rideId } = useParams();
+
+  const { showSnackbar, SnackbarComponent } = useSnackbar();
+
   const { t } = useTranslation();
+
 
   const [ride, setRide] = useState(() => location.state?.ride || null);
   const [paying, setPaying] = useState(false);
@@ -78,7 +86,11 @@ export default function RideConfirmedPage() {
       if (error) throw error;
     } catch (err) {
       logger.error('Stripe Checkout error', err);
+
+      showSnackbar('Unable to start payment. Please try again.', 'error');
+
       alert(t('unableToStartPayment'));
+
     } finally {
       setPaying(false);
     }
@@ -86,7 +98,9 @@ export default function RideConfirmedPage() {
 
   /* ------------------------------- UI ------------------------------------ */
   return (
-    <Box p={4}>
+    <>
+      <SnackbarComponent />
+      <Box p={4}>
       <Paper sx={{ p: 4, mb: 3 }}>
         <Typography variant="h4" fontWeight={600} color="primary" gutterBottom>
           {t('rideConfirmed')}
@@ -146,6 +160,7 @@ export default function RideConfirmedPage() {
           {paying ? <CircularProgress size={22} /> : t('payNow')}
         </Button>
       </Box>
-    </Box>
+      </Box>
+    </>
   );
 }
