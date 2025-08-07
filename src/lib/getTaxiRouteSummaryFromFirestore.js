@@ -4,7 +4,7 @@ import {
   where,
   getDocs,
 } from "firebase/firestore";
-import { db } from "../lib/firebase";
+import { db } from "./firebase";
 import { locationCoords } from "../data/coords";
 import logger from "../logger";
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Tabs,
@@ -10,7 +10,19 @@ import {
   Chip,
 } from "@mui/material";
 import { RideQueue } from "../components/driver/RideQueue";
+
 import logger from "../logger";
+
+import { db } from "../lib/firebase";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  updateDoc,
+} from "firebase/firestore";
+
 
 /**
  * Rides page – pending, active, completed.
@@ -18,15 +30,73 @@ import logger from "../logger";
  */
 export default function DriverRidesPage() {
   const [tab, setTab] = useState(0);
+  const [pendingRides, setPendingRides] = useState([]);
+  const [activeRides, setActiveRides] = useState([]);
+  const [completedRides, setCompletedRides] = useState([]);
 
-  /* TODO: replace with real data */
-  const pendingRides = [];      // status === "pending"
-  const activeRides = [];       // status === "accepted" | "en‑route"
-  const completedRides = [];    // status === "completed"
+  useEffect(() => {
+    const fetchPending = async () => {
+      const q = query(
+        collection(db, "rideRequests"),
+        where("status", "==", "pending")
+      );
+      const snapshot = await getDocs(q);
+      setPendingRides(
+        snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
+      );
+    };
+    fetchPending();
+  }, []);
+
+  useEffect(() => {
+    const fetchActive = async () => {
+      const q = query(
+        collection(db, "rideRequests"),
+        where("status", "in", ["accepted", "en-route"])
+      );
+      const snapshot = await getDocs(q);
+      setActiveRides(
+        snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
+      );
+    };
+    fetchActive();
+  }, []);
+
+  useEffect(() => {
+    const fetchCompleted = async () => {
+      const q = query(
+        collection(db, "rideRequests"),
+        where("status", "==", "completed")
+      );
+      const snapshot = await getDocs(q);
+      setCompletedRides(
+        snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
+      );
+    };
+    fetchCompleted();
+  }, []);
+
 
   const handleAccept = (rideId) => {
     logger.info("Accept ride", rideId);
     // Firestore update here
+
+  const handleAccept = async (rideId) => {
+    try {
+      const ref = doc(db, "rideRequests", rideId);
+      await updateDoc(ref, { status: "accepted" });
+      setPendingRides((prev) => prev.filter((r) => r.id !== rideId));
+      const acceptedRide = pendingRides.find((r) => r.id === rideId);
+      if (acceptedRide) {
+        setActiveRides((prev) => [
+          ...prev,
+          { ...acceptedRide, status: "accepted" },
+        ]);
+      }
+    } catch (err) {
+      console.error("Accept ride", err);
+    }
+
   };
 
   return (
