@@ -1,0 +1,8 @@
+#!/bin/sh
+# Format and lint staged files
+FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(js|jsx|ts|tsx|css|md|json)$')
+if [ -n "$FILES" ]; then
+  prettier --write $FILES
+  ESLINT_USE_FLAT_CONFIG=false eslint --fix $FILES
+  git add $FILES
+fi

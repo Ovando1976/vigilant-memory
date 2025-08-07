@@ -114,7 +114,12 @@ export default function HomePage() {
             border: '2px solid #bbe1fa',
           }}
         >
-          <Typography variant="h5" fontWeight="bold" color="#144272" gutterBottom>
+          <Typography
+            variant="h5"
+            fontWeight="bold"
+            color="#144272"
+            gutterBottom
+          >
             EXPLORE THE ISLAND
           </Typography>
           <Typography variant="body2" color="#555" mb={2}>
@@ -128,7 +133,7 @@ export default function HomePage() {
               border: '2px solid #64aef2',
             }}
           >
-            <HomeMap 
+            <HomeMap
               pickupCoords={locationCoords[pickup]}
               dropoffCoords={locationCoords[dropoff]}
             />
@@ -146,7 +151,12 @@ export default function HomePage() {
             border: '2px solid #bbe1fa',
           }}
         >
-          <Typography variant="h5" fontWeight="bold" color="#144272" gutterBottom>
+          <Typography
+            variant="h5"
+            fontWeight="bold"
+            color="#144272"
+            gutterBottom
+          >
             ESTIMATE YOUR FARE
           </Typography>
 
@@ -263,9 +273,21 @@ export default function HomePage() {
           </Typography>
           <Grid container spacing={4} mt={2}>
             <Grid item xs={12} md={4}>
-              <Paper sx={{ p: 3, textAlign: 'center', borderRadius: 2, backgroundColor: '#e3f6fc' }}>
+              <Paper
+                sx={{
+                  p: 3,
+                  textAlign: 'center',
+                  borderRadius: 2,
+                  backgroundColor: '#e3f6fc',
+                }}
+              >
                 <VerifiedUserIcon fontSize="large" color="primary" />
-                <Typography variant="h6" fontWeight="bold" mt={1} color="#144272">
+                <Typography
+                  variant="h6"
+                  fontWeight="bold"
+                  mt={1}
+                  color="#144272"
+                >
                   TRUSTED DRIVERS
                 </Typography>
                 <Typography variant="body2" color="#444">
@@ -274,9 +296,21 @@ export default function HomePage() {
               </Paper>
             </Grid>
             <Grid item xs={12} md={4}>
-              <Paper sx={{ p: 3, textAlign: 'center', borderRadius: 2, backgroundColor: '#e3f6fc' }}>
+              <Paper
+                sx={{
+                  p: 3,
+                  textAlign: 'center',
+                  borderRadius: 2,
+                  backgroundColor: '#e3f6fc',
+                }}
+              >
                 <DirectionsCarIcon fontSize="large" color="primary" />
-                <Typography variant="h6" fontWeight="bold" mt={1} color="#144272">
+                <Typography
+                  variant="h6"
+                  fontWeight="bold"
+                  mt={1}
+                  color="#144272"
+                >
                   RELIABLE RIDES
                 </Typography>
                 <Typography variant="body2" color="#444">
@@ -285,9 +319,21 @@ export default function HomePage() {
               </Paper>
             </Grid>
             <Grid item xs={12} md={4}>
-              <Paper sx={{ p: 3, textAlign: 'center', borderRadius: 2, backgroundColor: '#e3f6fc' }}>
+              <Paper
+                sx={{
+                  p: 3,
+                  textAlign: 'center',
+                  borderRadius: 2,
+                  backgroundColor: '#e3f6fc',
+                }}
+              >
                 <SupportAgentIcon fontSize="large" color="primary" />
-                <Typography variant="h6" fontWeight="bold" mt={1} color="#144272">
+                <Typography
+                  variant="h6"
+                  fontWeight="bold"
+                  mt={1}
+                  color="#144272"
+                >
                   24/7 SUPPORT
                 </Typography>
                 <Typography variant="body2" color="#444">

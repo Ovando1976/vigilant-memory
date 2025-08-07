@@ -9,7 +9,10 @@ export const useThemeMode = () => useContext(ThemeModeContext);
 export const ThemeModeProvider = ({ children }) => {
   const [mode, setMode] = useState('light');
 
-  const theme = useMemo(() => (mode === 'light' ? lightTheme : darkTheme), [mode]);
+  const theme = useMemo(
+    () => (mode === 'light' ? lightTheme : darkTheme),
+    [mode],
+  );
 
   return (
     <ThemeModeContext.Provider value={{ mode, setMode }}>

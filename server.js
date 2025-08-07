@@ -1,5 +1,8 @@
 require('dotenv').config();
-console.log('Stripe secret key loaded:', process.env.STRIPE_SECRET_KEY ? '✅ YES' : '❌ MISSING');
+console.log(
+  'Stripe secret key loaded:',
+  process.env.STRIPE_SECRET_KEY ? '✅ YES' : '❌ MISSING',
+);
 const express = require('express');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const app = express();

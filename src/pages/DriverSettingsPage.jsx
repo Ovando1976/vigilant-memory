@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   Box,
   Typography,
@@ -9,8 +9,8 @@ import {
   FormControlLabel,
   Button,
   Stack,
-} from "@mui/material";
-import { useArgonController } from "../context/ArgonControllerContext";
+} from '@mui/material';
+import { useArgonController } from '../context/ArgonControllerContext';
 
 /**
  * Driver settings – profile + app preferences.
@@ -21,16 +21,16 @@ export default function DriverSettingsPage() {
 
   /* local profile state – stub */
   const [profile, setProfile] = React.useState({
-    name: "Jane Driver",
-    email: "driver@example.com",
-    phone: "+1 340‑555‑1234",
+    name: 'Jane Driver',
+    email: 'driver@example.com',
+    phone: '+1 340‑555‑1234',
   });
 
   const handleChange = (field) => (e) =>
     setProfile({ ...profile, [field]: e.target.value });
 
   const saveProfile = () => {
-    console.log("Save profile", profile);
+    console.log('Save profile', profile);
     // Firestore .update({profile})
   };
 
@@ -50,19 +50,19 @@ export default function DriverSettingsPage() {
             <TextField
               label="Full Name"
               value={profile.name}
-              onChange={handleChange("name")}
+              onChange={handleChange('name')}
               fullWidth
             />
             <TextField
               label="Email"
               value={profile.email}
-              onChange={handleChange("email")}
+              onChange={handleChange('email')}
               fullWidth
             />
             <TextField
               label="Phone"
               value={profile.phone}
-              onChange={handleChange("phone")}
+              onChange={handleChange('phone')}
               fullWidth
             />
             <Button variant="contained" onClick={saveProfile}>
@@ -83,7 +83,7 @@ export default function DriverSettingsPage() {
             control={
               <Switch
                 checked={darkMode}
-                onChange={() => dispatch({ type: "TOGGLE_DARK" })}
+                onChange={() => dispatch({ type: 'TOGGLE_DARK' })}
               />
             }
             label="Dark Mode"
@@ -93,7 +93,7 @@ export default function DriverSettingsPage() {
             control={
               <Switch
                 checked={gtaMode}
-                onChange={() => dispatch({ type: "TOGGLE_GTA" })}
+                onChange={() => dispatch({ type: 'TOGGLE_GTA' })}
               />
             }
             label="GTA Neon Theme"

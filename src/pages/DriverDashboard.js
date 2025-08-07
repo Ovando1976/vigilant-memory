@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Outlet } from "react-router-dom";
+import React, { useState } from 'react';
+import { Outlet } from 'react-router-dom';
 import {
   Box,
   Container,
@@ -12,34 +12,34 @@ import {
   Fab,
   useMediaQuery,
   useTheme,
-} from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
-import ListAltIcon from "@mui/icons-material/ListAlt";
-import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
+} from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
+import ListAltIcon from '@mui/icons-material/ListAlt';
+import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 
-import Sidebar from "../components/driver/Sidebar";
-import { BottomNav } from "../components/driver/BottomNav";
-import KpiRow from "../components/driver/KpiRow";
-import { RideQueue } from "../components/driver/RideQueue";
-import EarningsChart from "../components/driver/EarningsChart";
-import LiveMap from "../components/driver/LiveMap";
-import ErrorBoundary from "../components/ErrorBoundary";
+import Sidebar from '../components/driver/Sidebar';
+import { BottomNav } from '../components/driver/BottomNav';
+import KpiRow from '../components/driver/KpiRow';
+import { RideQueue } from '../components/driver/RideQueue';
+import EarningsChart from '../components/driver/EarningsChart';
+import LiveMap from '../components/driver/LiveMap';
+import ErrorBoundary from '../components/ErrorBoundary';
 
 export default function DriverDashboard() {
   const theme = useTheme();
-  const upMd = useMediaQuery(theme.breakpoints.up("md"));
+  const upMd = useMediaQuery(theme.breakpoints.up('md'));
 
   /* UI state */
   const [queueOpen, setQueueOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false); // sidebar on mobile
-  const [mini, setMini] = useState(false);             // collapsed sidebar
+  const [mini, setMini] = useState(false); // collapsed sidebar
 
   /* Data placeholders (replace with Firestore) */
-  const rideRequests = [];    // populate with live data
+  const rideRequests = []; // populate with live data
   const pendingCount = rideRequests.length;
 
   const handleAcceptRide = (rideId) => {
-    console.log("Accepted ride ID:", rideId);
+    console.log('Accepted ride ID:', rideId);
   };
 
   /* Widths */
@@ -49,7 +49,7 @@ export default function DriverDashboard() {
 
   return (
     <ErrorBoundary>
-      <Box sx={{ display: "flex", height: "100vh", overflow: "hidden" }}>
+      <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
         {/* =========== Permanent / temporary sidebar =========== */}
         {upMd ? (
           <Drawer
@@ -78,27 +78,32 @@ export default function DriverDashboard() {
         )}
 
         {/* =========== MAP CANVAS =========== */}
-        <Box sx={{ flexGrow: 1, position: "relative" }}>
+        <Box sx={{ flexGrow: 1, position: 'relative' }}>
           <LiveMap />
 
           {/* ----- Floating KPI bar (top‑left) ----- */}
           <Paper
             elevation={4}
             sx={{
-              position: "absolute",
+              position: 'absolute',
               top: theme.spacing(1.5),
               left: theme.spacing(1.5),
-              width: { xs: "calc(100% - 24px)", md: 360 },
+              width: { xs: 'calc(100% - 24px)', md: 360 },
               p: 1.5,
               border: 1,
-              borderColor: "primary.main",
-              bgcolor: "background.paper",
+              borderColor: 'primary.main',
+              bgcolor: 'background.paper',
               zIndex: 1101,
             }}
           >
             <Typography
               variant="subtitle2"
-              sx={{ fontWeight: 700, color: "primary.main", mb: 1, textTransform: "uppercase" }}
+              sx={{
+                fontWeight: 700,
+                color: 'primary.main',
+                mb: 1,
+                textTransform: 'uppercase',
+              }}
             >
               Driver Command Center
             </Typography>
@@ -109,7 +114,7 @@ export default function DriverDashboard() {
           {!upMd && (
             <IconButton
               onClick={() => setDrawerOpen(true)}
-              sx={{ position: "absolute", top: 8, left: 8, zIndex: 1102 }}
+              sx={{ position: 'absolute', top: 8, left: 8, zIndex: 1102 }}
               size="large"
               color="inherit"
             >
@@ -122,7 +127,7 @@ export default function DriverDashboard() {
             direction="column"
             spacing={2}
             sx={{
-              position: "absolute",
+              position: 'absolute',
               right: theme.spacing(2),
               bottom: theme.spacing(10),
               zIndex: 1101,
@@ -144,7 +149,7 @@ export default function DriverDashboard() {
             <Fab
               size="medium"
               color="secondary"
-              onClick={() => alert("Earnings coming soon")}
+              onClick={() => alert('Earnings coming soon')}
               aria-label="Earnings"
             >
               <MonetizationOnIcon />
@@ -159,10 +164,10 @@ export default function DriverDashboard() {
           onClose={() => setQueueOpen(false)}
           PaperProps={{
             sx: {
-              width: { xs: "100%", md: 420 },
+              width: { xs: '100%', md: 420 },
               p: 2,
-              display: "flex",
-              flexDirection: "column",
+              display: 'flex',
+              flexDirection: 'column',
               gap: 2,
             },
           }}
@@ -186,11 +191,11 @@ export default function DriverDashboard() {
         {/* =========== Bottom nav (mobile) =========== */}
         <Box
           sx={{
-            display: { xs: "block", md: "none" },
-            position: "fixed",
+            display: { xs: 'block', md: 'none' },
+            position: 'fixed',
             bottom: 0,
             left: 0,
-            width: "100%",
+            width: '100%',
             zIndex: theme.zIndex.appBar,
           }}
         >

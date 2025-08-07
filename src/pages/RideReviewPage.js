@@ -1,12 +1,6 @@
 // src/pages/RideReviewPage.js
 import React, { useEffect, useState } from 'react';
-import {
-  Box,
-  Button,
-  Paper,
-  Typography,
-  Grid,
-} from '@mui/material';
+import { Box, Button, Paper, Typography, Grid } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import MyMapView from '../components/RoutePreviewMap';
 
@@ -21,7 +15,7 @@ function readRide(id) {
 
 export default function RideReviewPage() {
   const { rideId } = useParams();
-  const navigate   = useNavigate();
+  const navigate = useNavigate();
 
   /* keep the ride in state so we can react to live storage updates */
   const [ride, setRide] = useState(() => readRide(rideId));
@@ -51,30 +45,30 @@ export default function RideReviewPage() {
 
   /* ─── ride data ─────────────────────────────────────────────────── */
   const {
-    pickup        = '—',
-    dropoff       = '—',
+    pickup = '—',
+    dropoff = '—',
     pickupCoords,
     dropoffCoords,
-    fare          = 0,
-    durationMin   = '—',
+    fare = 0,
+    durationMin = '—',
   } = ride;
 
   /* confirm handler: mark status + jump to tracking page */
   const handleConfirm = () => {
-  /* 1 – mark as confirmed in storage */
-  const storeRaw = localStorage.getItem('rideRequests') || '{}';
-  const store    = JSON.parse(storeRaw);
-  if (store[rideId]) {
-    store[rideId] = { ...store[rideId], status: 'confirmed' };
-    localStorage.setItem('rideRequests', JSON.stringify(store));
-  }
+    /* 1 – mark as confirmed in storage */
+    const storeRaw = localStorage.getItem('rideRequests') || '{}';
+    const store = JSON.parse(storeRaw);
+    if (store[rideId]) {
+      store[rideId] = { ...store[rideId], status: 'confirmed' };
+      localStorage.setItem('rideRequests', JSON.stringify(store));
+    }
 
-  /* 2 – navigate to the confirmation page, passing the ride object */
-  navigate(
-    `/ridesharing/confirmed/${rideId}`,
-    { state: { ride: { ...store[rideId], id: rideId } }, replace: true }
-  );
-};
+    /* 2 – navigate to the confirmation page, passing the ride object */
+    navigate(`/ridesharing/confirmed/${rideId}`, {
+      state: { ride: { ...store[rideId], id: rideId } },
+      replace: true,
+    });
+  };
 
   /* ─── render ────────────────────────────────────────────────────── */
   return (
@@ -121,7 +115,11 @@ export default function RideReviewPage() {
         )}
 
         <Box textAlign="right">
-          <Button variant="outlined" sx={{ mr: 2 }} onClick={() => navigate(-1)}>
+          <Button
+            variant="outlined"
+            sx={{ mr: 2 }}
+            onClick={() => navigate(-1)}
+          >
             Cancel
           </Button>
           <Button variant="contained" onClick={handleConfirm}>

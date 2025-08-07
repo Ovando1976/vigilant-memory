@@ -20,7 +20,7 @@ function getRideById(id) {
 
 export default function RideTrackingPage() {
   const { t } = useTranslation();
-  const { rideId } = useParams();              // ← /ridesharing/track/:rideId
+  const { rideId } = useParams(); // ← /ridesharing/track/:rideId
   const [ride, setRide] = useState(() => getRideById(rideId));
 
   /* listen for live updates from other tabs or the driver dashboard */
@@ -70,13 +70,17 @@ export default function RideTrackingPage() {
 
         <p className="mb-1">
           ⏱️ ETA:{' '}
-          {typeof durationMin === 'number' ? `${durationMin} min` : t('Unknown')}
+          {typeof durationMin === 'number'
+            ? `${durationMin} min`
+            : t('Unknown')}
         </p>
         <p className="mb-1">
           💰 {t('Estimated Fare')}:&nbsp;
           {typeof fare === 'number' ? `$${fare.toFixed(2)}` : '–'}
         </p>
-        <p className="mb-4">🚦 {t('Status')}: {status}</p>
+        <p className="mb-4">
+          🚦 {t('Status')}: {status}
+        </p>
 
         {pickupCoords && dropoffCoords ? (
           <div className="h-[300px] w-full rounded shadow overflow-hidden">

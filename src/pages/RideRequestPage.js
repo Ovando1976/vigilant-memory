@@ -1,6 +1,6 @@
 // src/pages/RideRequestPage.js
 
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   Box,
   Button,
@@ -8,15 +8,15 @@ import {
   TextField,
   Typography,
   Paper,
-} from "@mui/material";
-import { useNavigate } from "react-router-dom";
-import { taxiRates } from "../data/taxiRates";
-import { getLocalTaxiRate } from "../lib/getLocalTaxiRate";
+} from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import { taxiRates } from '../data/taxiRates';
+import { getLocalTaxiRate } from '../lib/getLocalTaxiRate';
 
 export default function RideRequestPage() {
   const navigate = useNavigate();
-  const [pickup, setPickup] = useState("");
-  const [dropoff, setDropoff] = useState("");
+  const [pickup, setPickup] = useState('');
+  const [dropoff, setDropoff] = useState('');
   const [passengerCount, setPassengerCount] = useState(1);
   const [loading, setLoading] = useState(false);
   const [farePreview, setFarePreview] = useState(null);
@@ -31,14 +31,14 @@ export default function RideRequestPage() {
       const summary = getLocalTaxiRate(pickup, dropoff, passengerCount);
       setFarePreview(summary);
     } catch (err) {
-      console.error("Fare preview failed:", err);
+      console.error('Fare preview failed:', err);
       setFarePreview(null);
     }
   };
 
   const handleSubmit = () => {
     if (!pickup || !dropoff || pickup === dropoff) {
-      alert("Please select valid locations.");
+      alert('Please select valid locations.');
       return;
     }
 
@@ -46,7 +46,7 @@ export default function RideRequestPage() {
     try {
       const summary = getLocalTaxiRate(pickup, dropoff, passengerCount);
 
-      navigate("/ridesharing/review", {
+      navigate('/ridesharing/review', {
         state: {
           pickup,
           dropoff,
@@ -55,8 +55,8 @@ export default function RideRequestPage() {
         },
       });
     } catch (error) {
-      console.error("Failed to preview ride:", error);
-      alert("Could not continue to review page.");
+      console.error('Failed to preview ride:', error);
+      alert('Could not continue to review page.');
     } finally {
       setLoading(false);
     }
@@ -64,7 +64,7 @@ export default function RideRequestPage() {
 
   return (
     <Box p={4}>
-      <Paper elevation={3} sx={{ maxWidth: 500, mx: "auto", p: 4 }}>
+      <Paper elevation={3} sx={{ maxWidth: 500, mx: 'auto', p: 4 }}>
         <Typography variant="h5" fontWeight="bold" gutterBottom>
           Request a Ride
         </Typography>
@@ -120,8 +120,8 @@ export default function RideRequestPage() {
 
         {farePreview && (
           <Typography variant="body1" color="primary" gutterBottom>
-            💰 Estimated Fare: ${farePreview?.fare?.toFixed(2) ?? "N/A"} <br />
-            ⏱ ETA: ~{farePreview?.durationMin ?? "?"} min
+            💰 Estimated Fare: ${farePreview?.fare?.toFixed(2) ?? 'N/A'} <br />
+            ⏱ ETA: ~{farePreview?.durationMin ?? '?'} min
           </Typography>
         )}
 
@@ -131,7 +131,7 @@ export default function RideRequestPage() {
           onClick={handleSubmit}
           disabled={loading}
         >
-          {loading ? "Loading..." : "Review Ride"}
+          {loading ? 'Loading...' : 'Review Ride'}
         </Button>
       </Paper>
     </Box>

@@ -9,7 +9,10 @@ export default function ThemeToggle() {
 
   return (
     <Tooltip title="Toggle theme">
-      <IconButton onClick={() => setMode(mode === 'light' ? 'dark' : 'light')} color="inherit">
+      <IconButton
+        onClick={() => setMode(mode === 'light' ? 'dark' : 'light')}
+        color="inherit"
+      >
         {mode === 'light' ? <DarkModeIcon /> : <LightModeIcon />}
       </IconButton>
     </Tooltip>

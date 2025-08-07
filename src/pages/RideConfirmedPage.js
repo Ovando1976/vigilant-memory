@@ -10,9 +10,7 @@ import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { loadStripe } from '@stripe/stripe-js';
 
 /* ------------- Stripe initialisation (CRA uses process.env) ------------- */
-const stripePromise = loadStripe(
-  process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY
-);
+const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
 
 function readRide(id) {
   try {
@@ -23,12 +21,14 @@ function readRide(id) {
 }
 
 export default function RideConfirmedPage() {
-  const navigate   = useNavigate();
-  const location   = useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { rideId } = useParams();
 
   /* ---------- Retrieve ride from navigation state or localStorage ---------- */
-  const [ride, setRide] = useState(() => location.state?.ride || readRide(rideId));
+  const [ride, setRide] = useState(
+    () => location.state?.ride || readRide(rideId),
+  );
   const [paying, setPaying] = useState(false);
 
   /* keep state in sync if another tab updates localStorage */
@@ -58,13 +58,13 @@ export default function RideConfirmedPage() {
 
       // 1. Create Checkout Session via your backend
       const resp = await fetch('/api/create-checkout-session', {
-        method : 'POST',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body   : JSON.stringify({
+        body: JSON.stringify({
           rideId,
-          amountCents : Math.round((ride.fare || 0) * 100),
-          pickup      : ride.pickup,
-          dropoff     : ride.dropoff,
+          amountCents: Math.round((ride.fare || 0) * 100),
+          pickup: ride.pickup,
+          dropoff: ride.dropoff,
         }),
       });
 
@@ -92,17 +92,21 @@ export default function RideConfirmedPage() {
           🎉 Ride Confirmed!
         </Typography>
         <Typography variant="subtitle1" gutterBottom>
-          Your ride is being dispatched. You’ll be notified once a driver accepts.
+          Your ride is being dispatched. You’ll be notified once a driver
+          accepts.
         </Typography>
 
         <Box mt={3}>
           <Typography variant="h6">Trip Summary</Typography>
-          <Typography>📍 Pickup: <strong>{ride.pickup}</strong></Typography>
-          <Typography>🏁 Drop‑off: <strong>{ride.dropoff}</strong></Typography>
+          <Typography>
+            📍 Pickup: <strong>{ride.pickup}</strong>
+          </Typography>
+          <Typography>
+            🏁 Drop‑off: <strong>{ride.dropoff}</strong>
+          </Typography>
           <Typography>👥 Passengers: {ride.passengerCount || 1}</Typography>
           <Typography>
-            💰 Estimated Fare: $
-            {ride.fare != null ? ride.fare.toFixed(2) : '—'}
+            💰 Estimated Fare: ${ride.fare != null ? ride.fare.toFixed(2) : '—'}
           </Typography>
           <Typography>
             ⏱️ ETA: {ride.durationMin != null ? `${ride.durationMin} min` : '—'}

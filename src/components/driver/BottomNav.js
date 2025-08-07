@@ -1,5 +1,5 @@
-import React from "react";
-import { FaUsers, FaDollarSign, FaCog } from "react-icons/fa";
+import React from 'react';
+import { FaUsers, FaDollarSign, FaCog } from 'react-icons/fa';
 
 export const BottomNav = () => (
   <nav

@@ -1,26 +1,26 @@
 // src/components/LiveMap.js
-import React, { useRef, useMemo, useEffect } from "react";
-import { GoogleMap, Marker, Polyline } from "@react-google-maps/api";
-import useGoogleMaps from "../../hooks/useGoogleMaps";
-import { CircularProgress, Box, Alert } from "@mui/material";
-import { useArgonController } from "../../context/ArgonControllerContext";
+import React, { useRef, useMemo, useEffect } from 'react';
+import { GoogleMap, Marker, Polyline } from '@react-google-maps/api';
+import useGoogleMaps from '../../hooks/useGoogleMaps';
+import { CircularProgress, Box, Alert } from '@mui/material';
+import { useArgonController } from '../../context/ArgonControllerContext';
 
 /* ---------- constants ---------- */
 const CENTER_FALLBACK = { lat: 18.3419, lng: -64.9307 };
-const MAP_CONTAINER_STYLE = { width: "100%", height: "100%" };
+const MAP_CONTAINER_STYLE = { width: '100%', height: '100%' };
 
 const LIGHT_STYLE = [
-  { featureType: "water", stylers: [{ color: "#b9d3c2" }] },
-  { elementType: "labels.text.fill", stylers: [{ color: "#523735" }] },
+  { featureType: 'water', stylers: [{ color: '#b9d3c2' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#523735' }] },
 ];
 const DARK_STYLE = [
-  { elementType: "geometry", stylers: [{ color: "#212121" }] },
-  { elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
+  { elementType: 'geometry', stylers: [{ color: '#212121' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#757575' }] },
 ];
 const GTA_STYLE = [
-  { elementType: "geometry", stylers: [{ color: "#1f1b24" }] },
-  { elementType: "labels.text.fill", stylers: [{ color: "#f0f" }] },
-  { featureType: "water", stylers: [{ color: "#00f1ff" }] },
+  { elementType: 'geometry', stylers: [{ color: '#1f1b24' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#f0f' }] },
+  { featureType: 'water', stylers: [{ color: '#00f1ff' }] },
 ];
 
 /* ---------- helpers ---------- */
@@ -51,7 +51,7 @@ export default function LiveMap({
       clickableIcons: false,
       styles: gtaMode ? GTA_STYLE : darkMode ? DARK_STYLE : LIGHT_STYLE,
     }),
-    [darkMode, gtaMode]
+    [darkMode, gtaMode],
   );
 
   /* ----- ensure routePolyline is array of LatLng --- */
@@ -101,11 +101,11 @@ export default function LiveMap({
     return (
       <Box
         sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          width: "100%",
-          height: "100%",
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '100%',
+          height: '100%',
         }}
       >
         <CircularProgress />
@@ -131,7 +131,7 @@ export default function LiveMap({
           icon={{
             path: window.google.maps.SymbolPath.CIRCLE,
             scale: 8,
-            fillColor: "#00bcd4",
+            fillColor: '#00bcd4',
             fillOpacity: 1,
             strokeWeight: 0,
           }}
@@ -144,7 +144,7 @@ export default function LiveMap({
           icon={{
             path: window.google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
             scale: 5,
-            fillColor: "#ff9100",
+            fillColor: '#ff9100',
             fillOpacity: 1,
             strokeWeight: 0,
           }}
@@ -156,7 +156,7 @@ export default function LiveMap({
         <Polyline
           path={routePath}
           options={{
-            strokeColor: "#8e24aa",
+            strokeColor: '#8e24aa',
             strokeOpacity: 0.8,
             strokeWeight: 4,
           }}
@@ -168,7 +168,7 @@ export default function LiveMap({
         <Polyline
           path={traveledPath}
           options={{
-            strokeColor: "#00e676",
+            strokeColor: '#00e676',
             strokeOpacity: 0.9,
             strokeWeight: 6,
           }}
@@ -182,9 +182,9 @@ export default function LiveMap({
           ref={driverMarkerRef}
           icon={{
             path:
-              "M20.95,2.06c-5.26-1.3-10.64-1.3-15.9,0C2.35,2.56,0,5.12,0,8v6c0,2.88,2.35,5.44,5.05,5.94v2.22c0,0.55,0.45,1,1,1h2" +
-              "v-2h12v2h2c0.55,0,1-0.45,1-1v-2.22C21.65,19.44,24,16.88,24,14V8C24,5.12,21.65,2.56,20.95,2.06z",
-            fillColor: "#00e5ff",
+              'M20.95,2.06c-5.26-1.3-10.64-1.3-15.9,0C2.35,2.56,0,5.12,0,8v6c0,2.88,2.35,5.44,5.05,5.94v2.22c0,0.55,0.45,1,1,1h2' +
+              'v-2h12v2h2c0.55,0,1-0.45,1-1v-2.22C21.65,19.44,24,16.88,24,14V8C24,5.12,21.65,2.56,20.95,2.06z',
+            fillColor: '#00e5ff',
             fillOpacity: 1,
             strokeWeight: 0,
             scale: 1,

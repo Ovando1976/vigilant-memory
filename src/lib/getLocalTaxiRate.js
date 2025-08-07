@@ -1,4 +1,4 @@
-import { taxiRates } from "../data/taxiRates";
+import { taxiRates } from '../data/taxiRates';
 
 export function getLocalTaxiRate(from, to, passengers = 1) {
   const route = taxiRates.find((r) => r.from === from && r.to === to);

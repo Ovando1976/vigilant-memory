@@ -1,20 +1,20 @@
-import React, { useEffect, useState } from "react";
-import { Helmet } from "react-helmet-async";
-import { FaCar } from "react-icons/fa";
-import { useTranslation } from "react-i18next";
-import { useLocation } from "react-router-dom";
-import { RoutePreviewMap } from "../components/RoutePreviewMap";
-import { locationCoords } from "../data/locationCoords";
-import { getTaxiRouteSummaryFromFirestore } from "../lib/getTaxiRouteSummaryFromFirestore";
-import { auth } from "../components/services/firebase";
+import React, { useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
+import { FaCar } from 'react-icons/fa';
+import { useTranslation } from 'react-i18next';
+import { useLocation } from 'react-router-dom';
+import { RoutePreviewMap } from '../components/RoutePreviewMap';
+import { locationCoords } from '../data/locationCoords';
+import { getTaxiRouteSummaryFromFirestore } from '../lib/getTaxiRouteSummaryFromFirestore';
+import { auth } from '../components/services/firebase';
 
 const Ridesharing = () => {
   const { t } = useTranslation();
   const { search } = useLocation();
   const query = new URLSearchParams(search);
-  const pickupLocation = query.get("pickup") ?? "";
-  const dropoffLocation = query.get("dropoff") ?? "";
-  const passengerCount = parseInt(query.get("passengers") ?? "1", 10);
+  const pickupLocation = query.get('pickup') ?? '';
+  const dropoffLocation = query.get('dropoff') ?? '';
+  const passengerCount = parseInt(query.get('passengers') ?? '1', 10);
 
   const [user, setUser] = useState(null);
   const [fare, setFare] = useState(null);
@@ -37,7 +37,7 @@ const Ridesharing = () => {
     getTaxiRouteSummaryFromFirestore(
       pickupLocation,
       dropoffLocation,
-      passengerCount
+      passengerCount,
     ).then((summary) => {
       if (summary) {
         setFare(summary.fare);
@@ -53,12 +53,12 @@ const Ridesharing = () => {
   return (
     <>
       <Helmet>
-        <title>{t("Track Ride")} | USVI Explorer</title>
+        <title>{t('Track Ride')} | USVI Explorer</title>
       </Helmet>
 
       <main className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white px-4 py-6">
         <h1 className="text-3xl font-bold flex items-center gap-2">
-          <FaCar /> {t("Track Ride")}
+          <FaCar /> {t('Track Ride')}
         </h1>
 
         {user && <p className="text-sm text-gray-600 mb-2">📧 {user.email}</p>}
@@ -66,14 +66,14 @@ const Ridesharing = () => {
         {pickupLocation && dropoffLocation ? (
           <>
             <p className="text-lg mb-2">
-              📍 <strong>{pickupLocation}</strong> →{" "}
+              📍 <strong>{pickupLocation}</strong> →{' '}
               <strong>{dropoffLocation}</strong>
             </p>
             <p className="mb-1">
-              ⏱️ ETA: {duration !== null ? `${duration} min` : "Calculating..."}
+              ⏱️ ETA: {duration !== null ? `${duration} min` : 'Calculating...'}
             </p>
             <p className="mb-4">
-              💰 Estimated Fare: {fare !== null ? `$${fare.toFixed(2)}` : "–"}
+              💰 Estimated Fare: {fare !== null ? `$${fare.toFixed(2)}` : '–'}
             </p>
 
             {pickupCoords && dropoffCoords ? (

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo } from 'react';
 import {
   ThemeProvider,
   createTheme,
@@ -6,52 +6,52 @@ import {
   IconButton,
   Tooltip,
   Box,
-} from "@mui/material";
-import Brightness4Icon from "@mui/icons-material/Brightness4";
-import Brightness7Icon from "@mui/icons-material/Brightness7";
-import LocalFireDepartmentIcon from "@mui/icons-material/LocalFireDepartment";
-import { Routes, Route, Navigate } from "react-router-dom";
+} from '@mui/material';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
+import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
+import { Routes, Route, Navigate } from 'react-router-dom';
 
 import {
   ArgonControllerProvider,
   useArgonController,
-} from "./context/ArgonControllerContext";
+} from './context/ArgonControllerContext';
 
 /* ─────── pages ─────── */
-import HomePage from "./pages/HomePage";
-import RideRequestPage from "./pages/RideRequestPage";
-import RideReviewPage from "./pages/RideReviewPage";
-import RideConfirmedPage from "./pages/RideConfirmedPage";
-import RideTrackingPage from "./pages/RideTrackingPage";
-import Ridesharing from "./pages/Ridesharing";
-import DriverDashboard from "./pages/DriverDashboard";
-import DriverProfilePage from "./pages/DriverProfilePage";
-import DriverRidesPage from "./pages/DriverRidesPage";
-import DriverSettingsPage from "./pages/DriverSettingsPage";
-import TestMap from "./pages/TestMap";
-import UserRideHistory from "./pages/UserRideHistory";
+import HomePage from './pages/HomePage';
+import RideRequestPage from './pages/RideRequestPage';
+import RideReviewPage from './pages/RideReviewPage';
+import RideConfirmedPage from './pages/RideConfirmedPage';
+import RideTrackingPage from './pages/RideTrackingPage';
+import Ridesharing from './pages/Ridesharing';
+import DriverDashboard from './pages/DriverDashboard';
+import DriverProfilePage from './pages/DriverProfilePage';
+import DriverRidesPage from './pages/DriverRidesPage';
+import DriverSettingsPage from './pages/DriverSettingsPage';
+import TestMap from './pages/TestMap';
+import UserRideHistory from './pages/UserRideHistory';
 
 /* ─────── themes ─────── */
 const gtaDarkTheme = createTheme({
   palette: {
-    mode: "dark",
-    background: { default: "#0c0c0c", paper: "#1a1a1a" },
-    primary: { main: "#00FF00" },
-    secondary: { main: "#FFD700" },
-    text: { primary: "#F2F2F2", secondary: "#AAAAAA" },
+    mode: 'dark',
+    background: { default: '#0c0c0c', paper: '#1a1a1a' },
+    primary: { main: '#00FF00' },
+    secondary: { main: '#FFD700' },
+    text: { primary: '#F2F2F2', secondary: '#AAAAAA' },
   },
-  typography: { fontFamily: "Arial Black, sans-serif" },
+  typography: { fontFamily: 'Arial Black, sans-serif' },
 });
 
 const lightBlueTheme = createTheme({
   palette: {
-    mode: "light",
-    background: { default: "#e0f7fa", paper: "#ffffff" },
-    primary: { main: "#0288d1" },
-    secondary: { main: "#ffb300" },
-    text: { primary: "#0d47a1", secondary: "#546e7a" },
+    mode: 'light',
+    background: { default: '#e0f7fa', paper: '#ffffff' },
+    primary: { main: '#0288d1' },
+    secondary: { main: '#ffb300' },
+    text: { primary: '#0d47a1', secondary: '#546e7a' },
   },
-  typography: { fontFamily: "Helvetica, sans-serif" },
+  typography: { fontFamily: 'Helvetica, sans-serif' },
 });
 
 /* ────────────────────── shell ────────────────────── */
@@ -61,7 +61,7 @@ function AppShell() {
   /* pick the right MUI palette */
   const theme = useMemo(
     () => (darkMode || gtaMode ? gtaDarkTheme : lightBlueTheme),
-    [darkMode, gtaMode]
+    [darkMode, gtaMode],
   );
 
   return (
@@ -69,20 +69,22 @@ function AppShell() {
       <CssBaseline />
 
       {/* theme toggles */}
-      <Box sx={{ p: 1, position: "fixed", top: 0, right: 0, zIndex: 9999 }}>
-        <Tooltip title={darkMode ? "Switch to Light Theme" : "Switch to Dark Theme"}>
+      <Box sx={{ p: 1, position: 'fixed', top: 0, right: 0, zIndex: 9999 }}>
+        <Tooltip
+          title={darkMode ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
+        >
           <IconButton
             color="inherit"
-            onClick={() => dispatch({ type: "TOGGLE_DARK" })}
+            onClick={() => dispatch({ type: 'TOGGLE_DARK' })}
           >
             {darkMode ? <Brightness7Icon /> : <Brightness4Icon />}
           </IconButton>
         </Tooltip>
 
-        <Tooltip title={gtaMode ? "Disable GTA Mode" : "Enable GTA Mode"}>
+        <Tooltip title={gtaMode ? 'Disable GTA Mode' : 'Enable GTA Mode'}>
           <IconButton
             color="inherit"
-            onClick={() => dispatch({ type: "TOGGLE_GTA" })}
+            onClick={() => dispatch({ type: 'TOGGLE_GTA' })}
           >
             <LocalFireDepartmentIcon />
           </IconButton>
@@ -119,7 +121,7 @@ function AppShell() {
         {/* 404 */}
         <Route
           path="*"
-          element={<p style={{ padding: "2rem" }}>404 – Page not found</p>}
+          element={<p style={{ padding: '2rem' }}>404 – Page not found</p>}
         />
       </Routes>
     </ThemeProvider>

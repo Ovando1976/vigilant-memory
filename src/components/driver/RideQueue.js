@@ -1,5 +1,5 @@
-import React from "react";
-import { Typography, List, ListItem, ListItemText } from "@mui/material";
+import React from 'react';
+import { Typography, List, ListItem, ListItemText } from '@mui/material';
 
 export function RideQueue({ rides = [], onAccept }) {
   if (!rides.length) {

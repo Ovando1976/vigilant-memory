@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   Box,
   Tabs,
@@ -8,8 +8,8 @@ import {
   ListItem,
   ListItemText,
   Chip,
-} from "@mui/material";
-import { RideQueue } from "../components/driver/RideQueue";
+} from '@mui/material';
+import { RideQueue } from '../components/driver/RideQueue';
 
 /**
  * Rides page – pending, active, completed.
@@ -19,12 +19,12 @@ export default function DriverRidesPage() {
   const [tab, setTab] = useState(0);
 
   /* TODO: replace with real data */
-  const pendingRides = [];      // status === "pending"
-  const activeRides = [];       // status === "accepted" | "en‑route"
-  const completedRides = [];    // status === "completed"
+  const pendingRides = []; // status === "pending"
+  const activeRides = []; // status === "accepted" | "en‑route"
+  const completedRides = []; // status === "completed"
 
   const handleAccept = (rideId) => {
-    console.log("Accept ride", rideId);
+    console.log('Accept ride', rideId);
     // Firestore update here
   };
 
@@ -65,7 +65,7 @@ export default function DriverRidesPage() {
               <ListItemText
                 primary={`${r.pickupLabel} ➜ ${r.dropoffLabel}`}
                 secondary={`Started ${new Date(
-                  r.startedAt
+                  r.startedAt,
                 ).toLocaleTimeString()}`}
               />
               <Chip label={r.status} color="warning" size="small" />
@@ -77,7 +77,9 @@ export default function DriverRidesPage() {
       {tab === 2 && (
         <List dense disablePadding>
           {completedRides.length === 0 && (
-            <Typography color="text.secondary">No completed rides yet.</Typography>
+            <Typography color="text.secondary">
+              No completed rides yet.
+            </Typography>
           )}
           {completedRides.map((r) => (
             <ListItem key={r.id}>

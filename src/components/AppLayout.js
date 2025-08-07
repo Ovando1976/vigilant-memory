@@ -1,6 +1,12 @@
 // src/components/AppLayout.js
 import React, { createContext, useContext, useState } from 'react';
-import { Box, CssBaseline, IconButton, ThemeProvider, createTheme } from '@mui/material';
+import {
+  Box,
+  CssBaseline,
+  IconButton,
+  ThemeProvider,
+  createTheme,
+} from '@mui/material';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 

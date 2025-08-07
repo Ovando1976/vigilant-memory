@@ -1,21 +1,16 @@
-import React from "react";
+import React from 'react';
 import {
   FaMapMarkerAlt,
   FaFlagCheckered,
   FaUsers,
   FaDollarSign,
-} from "react-icons/fa";
-import { motion } from "framer-motion";
+} from 'react-icons/fa';
+import { motion } from 'framer-motion';
 
 /* ------------------------------------------------------------------
    Presentational card – isolated, reusable
    ------------------------------------------------------------------ */
-const RideCard = ({
-  ride,
-  accepting = false,
-  onAccept,
-  className = "",
-}) => {
+const RideCard = ({ ride, accepting = false, onAccept, className = '' }) => {
   return (
     <motion.div
       layout
@@ -32,17 +27,13 @@ const RideCard = ({
       {/* Pickup */}
       <div className="flex items-center gap-3">
         <FaMapMarkerAlt className="text-red-500" />
-        <span className="font-medium truncate">
-          {ride.pickupText}
-        </span>
+        <span className="font-medium truncate">{ride.pickupText}</span>
       </div>
 
       {/* Drop‑off */}
       <div className="flex items-center gap-3">
         <FaFlagCheckered className="text-green-500" />
-        <span className="font-medium truncate">
-          {ride.dropoffText}
-        </span>
+        <span className="font-medium truncate">{ride.dropoffText}</span>
       </div>
 
       {/* Meta */}
@@ -61,7 +52,7 @@ const RideCard = ({
         disabled={accepting}
         className="btn-primary w-full disabled:opacity-60 disabled:cursor-not-allowed"
       >
-        {accepting ? "Accepting…" : "Accept Ride"}
+        {accepting ? 'Accepting…' : 'Accept Ride'}
       </button>
     </motion.div>
   );

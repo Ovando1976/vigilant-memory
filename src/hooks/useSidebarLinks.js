@@ -3,7 +3,7 @@ import {
   FaListAlt,
   FaDollarSign,
   FaCog,
-} from "react-icons/fa";
+} from 'react-icons/fa';
 
 /**
  * Build the sidebar link list according to the user's role
@@ -13,31 +13,31 @@ import {
  * @param {{ rides?: number, settlements?: number }} counts
  * @returns {Array}
  */
-export default function useSidebarLinks(role = "driver", counts = {}) {
+export default function useSidebarLinks(role = 'driver', counts = {}) {
   return [
     {
-      to: "/driver",
+      to: '/driver',
       icon: FaTachometerAlt,
-      label: "Dashboard",
+      label: 'Dashboard',
       end: true,
     },
     {
-      to: "/driver/requests",
+      to: '/driver/requests',
       icon: FaListAlt,
-      label: "Rides",
+      label: 'Rides',
       badge: counts.rides ?? 0,
     },
-    role !== "driver" && {
-      to: "/driver/earnings",
+    role !== 'driver' && {
+      to: '/driver/earnings',
       icon: FaDollarSign,
-      label: "Earnings",
+      label: 'Earnings',
       badge: counts.settlements ?? 0,
-      roles: ["manager", "owner"],
+      roles: ['manager', 'owner'],
     },
     {
-      to: "/driver/settings",
+      to: '/driver/settings',
       icon: FaCog,
-      label: "Settings",
+      label: 'Settings',
     },
   ].filter(Boolean);
 }

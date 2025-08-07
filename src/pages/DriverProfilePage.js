@@ -1,6 +1,6 @@
 // src/pages/DriverProfilePage.js
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Paper,
@@ -12,7 +12,7 @@ import {
   ListItem,
   ListItemText,
   CircularProgress,
-} from "@mui/material";
+} from '@mui/material';
 
 export default function DriverProfilePage() {
   const [driver, setDriver] = useState(null);
@@ -24,29 +24,29 @@ export default function DriverProfilePage() {
     // Simulate API call with mock data
     setTimeout(() => {
       const mockDriver = {
-        name: "Alex Thompson",
-        email: "alex@usvishuttle.com",
-        phone: "340-123-4567",
-        vehicleMake: "Hyundai",
-        vehicleModel: "Tucson",
-        plateNumber: "STT-9972",
+        name: 'Alex Thompson',
+        email: 'alex@usvishuttle.com',
+        phone: '340-123-4567',
+        vehicleMake: 'Hyundai',
+        vehicleModel: 'Tucson',
+        plateNumber: 'STT-9972',
         isAvailable: true,
       };
 
       const mockRides = [
         {
-          id: "ride1",
-          pickup: "Cyril E. King Airport",
-          dropoff: "Bolongo Bay",
+          id: 'ride1',
+          pickup: 'Cyril E. King Airport',
+          dropoff: 'Bolongo Bay',
           fare: 12.0,
-          status: "completed",
+          status: 'completed',
         },
         {
-          id: "ride2",
-          pickup: "Charlotte Amalie",
-          dropoff: "Compass Point",
+          id: 'ride2',
+          pickup: 'Charlotte Amalie',
+          dropoff: 'Compass Point',
           fare: 14.0,
-          status: "canceled",
+          status: 'canceled',
         },
       ];
 
@@ -60,7 +60,7 @@ export default function DriverProfilePage() {
   const handleAvailabilityToggle = (event) => {
     const available = event.target.checked;
     setIsAvailable(available);
-    console.log("Availability updated:", available);
+    console.log('Availability updated:', available);
     // You can send this to an API here if needed
   };
 
@@ -103,7 +103,12 @@ export default function DriverProfilePage() {
           {driver.vehicleMake} {driver.vehicleModel} ({driver.plateNumber})
         </Typography>
 
-        <Box display="flex" justifyContent="space-between" alignItems="center" mt={3}>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          mt={3}
+        >
           <Typography>Available for rides</Typography>
           <Switch checked={isAvailable} onChange={handleAvailabilityToggle} />
         </Box>
