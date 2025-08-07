@@ -14,11 +14,7 @@ import { taxiRates } from "../data/taxiRates";
 import { locationCoords } from "../data/locationCoords";
 import { getLocalTaxiRate } from "../lib/getLocalTaxiRate";
 import { createRideRequest } from "../lib/createRideRequest";
-import { locationCoords } from "../data/locationCoords";
-
 import logger from "../logger";
-
-import { createRideRequest } from "../lib/createRideRequest";
 
 
 export default function RideRequestPage() {
