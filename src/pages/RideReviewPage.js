@@ -1,40 +1,21 @@
 // src/pages/RideReviewPage.js
 import React, { useEffect, useState } from 'react';
-import {
-  Box,
-  Button,
-  Paper,
-  Typography,
-  Grid,
-} from '@mui/material';
+import { Box, Button, Paper, Typography, Grid } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import MyMapView from '../components/RoutePreviewMap';
-
-/* helper -------------------------------------------------------------- */
-function readRide(id) {
-  try {
-    return JSON.parse(localStorage.getItem('rideRequests') || '{}')[id] ?? null;
-  } catch {
-    return null; // corrupt JSON
-  }
-}
+import { subscribeToRide, updateRide } from '../lib/rideService';
 
 export default function RideReviewPage() {
   const { rideId } = useParams();
   const navigate   = useNavigate();
   const { t } = useTranslation();
 
-  /* keep the ride in state so we can react to live storage updates */
-  const [ride, setRide] = useState(() => readRide(rideId));
+  const [ride, setRide] = useState(null);
 
-  /* listen for changes from other tabs or the driver dashboard */
   useEffect(() => {
-    const onStorage = (e) => {
-      if (e.key === 'rideRequests') setRide(readRide(rideId));
-    };
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
+    const unsubscribe = subscribeToRide(rideId, setRide);
+    return unsubscribe;
   }, [rideId]);
 
   /* early exit if the ride vanished (bad id, cleared storage, …) */
@@ -62,21 +43,13 @@ export default function RideReviewPage() {
   } = ride;
 
   /* confirm handler: mark status + jump to tracking page */
-  const handleConfirm = () => {
-  /* 1 – mark as confirmed in storage */
-  const storeRaw = localStorage.getItem('rideRequests') || '{}';
-  const store    = JSON.parse(storeRaw);
-  if (store[rideId]) {
-    store[rideId] = { ...store[rideId], status: 'confirmed' };
-    localStorage.setItem('rideRequests', JSON.stringify(store));
-  }
-
-  /* 2 – navigate to the confirmation page, passing the ride object */
-  navigate(
-    `/ridesharing/confirmed/${rideId}`,
-    { state: { ride: { ...store[rideId], id: rideId } }, replace: true }
-  );
-};
+  const handleConfirm = async () => {
+    await updateRide(rideId, { status: 'confirmed' });
+    navigate(
+      `/ridesharing/confirmed/${rideId}`,
+      { state: { ride: { ...ride, status: 'confirmed', id: rideId } }, replace: true }
+    );
+  };
 
   /* ─── render ────────────────────────────────────────────────────── */
   return (
