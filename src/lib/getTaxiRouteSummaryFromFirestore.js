@@ -4,12 +4,13 @@ import {
   where,
   getDocs,
 } from "firebase/firestore";
-import { db } from "../lib/firebase";
+import { db } from "./firebase";
 import { locationCoords } from "../data/coords";
+import logger from "../logger";
 
 export async function getTaxiRouteSummaryFromFirestore(from, to, passengers = 1) {
   if (!from || !to || !passengers) {
-    console.warn("❗ Invalid input to fare lookup:", { from, to, passengers });
+    logger.warn("❗ Invalid input to fare lookup:", { from, to, passengers });
     return null;
   }
 
@@ -29,7 +30,7 @@ export async function getTaxiRouteSummaryFromFirestore(from, to, passengers = 1)
           ? doc.onePerson
           : doc.onePerson + doc.twoPlus * (passengers - 1);
 
-      console.log("✅ Firestore fare match:", { from, to, fare, doc });
+      logger.info("✅ Firestore fare match:", { from, to, fare, doc });
 
       return {
         fare,
@@ -37,17 +38,17 @@ export async function getTaxiRouteSummaryFromFirestore(from, to, passengers = 1)
         source: "firestore",
       };
     } else {
-      console.info("ℹ️ No Firestore fare found for route:", from, "→", to);
+      logger.info("ℹ️ No Firestore fare found for route:", from, "→", to);
     }
   } catch (err) {
-    console.warn("❌ Firestore fare lookup failed:", err);
+    logger.warn("❌ Firestore fare lookup failed:", err);
   }
 
   // 🔁 Fallback: Calculate Haversine-based estimate
   const pickup = locationCoords[from];
   const dropoff = locationCoords[to];
   if (!pickup || !dropoff) {
-    console.error("❗ Missing coordinates for fallback:", { from, to });
+    logger.error("❗ Missing coordinates for fallback:", { from, to });
     return null;
   }
 
@@ -65,7 +66,7 @@ export async function getTaxiRouteSummaryFromFirestore(from, to, passengers = 1)
   const fallbackFare = 5 + distance * 3;
   const fallbackDuration = (distance / 25) * 60;
 
-  console.log("🧭 Fallback fare:", {
+  logger.info("🧭 Fallback fare:", {
     from,
     to,
     distance: distance.toFixed(2),
