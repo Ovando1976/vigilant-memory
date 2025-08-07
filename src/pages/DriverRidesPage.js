@@ -10,6 +10,9 @@ import {
   Chip,
 } from "@mui/material";
 import { RideQueue } from "../components/driver/RideQueue";
+
+import logger from "../logger";
+
 import { db } from "../lib/firebase";
 import {
   collection,
@@ -19,6 +22,7 @@ import {
   doc,
   updateDoc,
 } from "firebase/firestore";
+
 
 /**
  * Rides page – pending, active, completed.
@@ -72,6 +76,11 @@ export default function DriverRidesPage() {
     fetchCompleted();
   }, []);
 
+
+  const handleAccept = (rideId) => {
+    logger.info("Accept ride", rideId);
+    // Firestore update here
+
   const handleAccept = async (rideId) => {
     try {
       const ref = doc(db, "rideRequests", rideId);
@@ -87,6 +96,7 @@ export default function DriverRidesPage() {
     } catch (err) {
       console.error("Accept ride", err);
     }
+
   };
 
   return (
