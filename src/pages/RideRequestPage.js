@@ -14,15 +14,13 @@ import { taxiRates } from "../data/taxiRates";
 import { locationCoords } from "../data/locationCoords";
 import { getLocalTaxiRate } from "../lib/getLocalTaxiRate";
 import { createRideRequest } from "../lib/createRideRequest";
-import { locationCoords } from "../data/locationCoords";
-
 import logger from "../logger";
-
-import { createRideRequest } from "../lib/createRideRequest";
+import useSnackbar from "../hooks/useSnackbar";
 
 
 export default function RideRequestPage() {
   const navigate = useNavigate();
+  const { showSnackbar, SnackbarComponent } = useSnackbar();
   const [pickup, setPickup] = useState("");
   const [dropoff, setDropoff] = useState("");
   const [passengerCount, setPassengerCount] = useState(1);
@@ -46,7 +44,7 @@ export default function RideRequestPage() {
 
   const handleSubmit = () => {
     if (!pickup || !dropoff || pickup === dropoff) {
-      alert("Please select valid locations.");
+      showSnackbar("Please select valid locations.", "warning");
       return;
     }
 
@@ -66,14 +64,16 @@ export default function RideRequestPage() {
       navigate(`/ridesharing/review/${rideId}`);
     } catch (error) {
       logger.error("Failed to preview ride:", error);
-      alert("Could not continue to review page.");
+      showSnackbar("Could not continue to review page.", "error");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Box p={4}>
+    <>
+      <SnackbarComponent />
+      <Box p={4}>
       <Paper elevation={3} sx={{ maxWidth: 500, mx: "auto", p: 4 }}>
         <Typography variant="h5" fontWeight="bold" gutterBottom>
           Request a Ride
@@ -144,6 +144,7 @@ export default function RideRequestPage() {
           {loading ? "Loading..." : "Review Ride"}
         </Button>
       </Paper>
-    </Box>
+      </Box>
+    </>
   );
 }

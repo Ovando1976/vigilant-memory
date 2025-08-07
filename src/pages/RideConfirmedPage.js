@@ -9,6 +9,7 @@ import {
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { loadStripe } from '@stripe/stripe-js';
 import logger from '../logger';
+import useSnackbar from '../hooks/useSnackbar';
 
 /* ------------- Stripe initialisation (CRA uses process.env) ------------- */
 const stripePromise = loadStripe(
@@ -27,6 +28,7 @@ export default function RideConfirmedPage() {
   const navigate   = useNavigate();
   const location   = useLocation();
   const { rideId } = useParams();
+  const { showSnackbar, SnackbarComponent } = useSnackbar();
 
   /* ---------- Retrieve ride from navigation state or localStorage ---------- */
   const [ride, setRide] = useState(() => location.state?.ride || readRide(rideId));
@@ -79,7 +81,7 @@ export default function RideConfirmedPage() {
       if (error) throw error;
     } catch (err) {
       logger.error('Stripe Checkout error', err);
-      alert('Unable to start payment. Please try again.');
+      showSnackbar('Unable to start payment. Please try again.', 'error');
     } finally {
       setPaying(false);
     }
@@ -87,7 +89,9 @@ export default function RideConfirmedPage() {
 
   /* ------------------------------- UI ------------------------------------ */
   return (
-    <Box p={4}>
+    <>
+      <SnackbarComponent />
+      <Box p={4}>
       <Paper sx={{ p: 4, mb: 3 }}>
         <Typography variant="h4" fontWeight={600} color="primary" gutterBottom>
           🎉 Ride Confirmed!
@@ -132,6 +136,7 @@ export default function RideConfirmedPage() {
           {paying ? <CircularProgress size={22} /> : 'Pay Now'}
         </Button>
       </Box>
-    </Box>
+      </Box>
+    </>
   );
 }
