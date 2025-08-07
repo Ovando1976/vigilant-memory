@@ -35,13 +35,13 @@ export default function HomePage() {
       alert('Please select valid locations.');
       return;
     }
-    const summary = getLocalTaxiRate(pickup, dropoff, 1);
-    if (!summary) {
-      alert('No rate found for this route.');
+    try {
+      const summary = getLocalTaxiRate(pickup, dropoff, 1);
+      setFareInfo(summary);
+    } catch (err) {
+      alert(err.message);
       setFareInfo(null);
-      return;
     }
-    setFareInfo(summary);
   };
 
   const handleBookRide = async () => {

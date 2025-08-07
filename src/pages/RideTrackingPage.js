@@ -25,6 +25,16 @@ export default function RideTrackingPage() {
     );
   }
 
+  const { status = 'requested' } = ride;
+
+  if (status === 'cancelled') {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
+        <p className="text-xl font-medium">{t('Ride cancelled')} 😢</p>
+      </main>
+    );
+  }
+
   const {
     pickup,
     dropoff,
@@ -32,7 +42,6 @@ export default function RideTrackingPage() {
     dropoffCoords,
     fare,
     durationMin,
-    status = 'requested',
   } = ride;
 
   return (
