@@ -4,11 +4,22 @@ const logger = require('./logger');
 logger.info('Stripe secret key loaded:', process.env.STRIPE_SECRET_KEY ? '✅ YES' : '❌ MISSING');
 
 const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const app = express();
-const PORT = 5001;
+const PORT = process.env.PORT || 5001;
 
 const BASE_CLIENT_URL = process.env.BASE_CLIENT_URL || 'http://localhost:3000';
+
+app.use(cors({ origin: BASE_CLIENT_URL }));
+app.use(helmet());
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+});
+app.use(limiter);
 
 app.use(express.json());
 
