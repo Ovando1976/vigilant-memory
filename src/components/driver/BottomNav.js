@@ -1,5 +1,5 @@
 import React from "react";
-import { FaUsers, FaDollarSign, FaCog } from "react-icons/fa";
+import { FaUsers, FaCog } from "react-icons/fa";
 
 export const BottomNav = () => (
   <nav
@@ -8,7 +8,6 @@ export const BottomNav = () => (
                   flex justify-around py-2 md:hidden"
   >
     <NavItem icon={<FaUsers />} label="Requests" href="/driver" />
-    <NavItem icon={<FaDollarSign />} label="Earnings" href="/driver/earnings" />
     <NavItem icon={<FaCog />} label="Settings" href="/driver/settings" />
   </nav>
 );
