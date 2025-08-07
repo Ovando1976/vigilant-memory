@@ -11,7 +11,9 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { taxiRates } from "../data/taxiRates";
+import { locationCoords } from "../data/locationCoords";
 import { getLocalTaxiRate } from "../lib/getLocalTaxiRate";
+import { createRideRequest } from "../lib/createRideRequest";
 
 export default function RideRequestPage() {
   const navigate = useNavigate();
@@ -45,15 +47,16 @@ export default function RideRequestPage() {
     setLoading(true);
     try {
       const summary = getLocalTaxiRate(pickup, dropoff, passengerCount);
-
-      navigate("/ridesharing/review", {
-        state: {
-          pickup,
-          dropoff,
-          passengerCount,
-          fareSummary: summary,
-        },
+      const rideId = createRideRequest({
+        pickup,
+        dropoff,
+        pickupCoords: locationCoords[pickup],
+        dropoffCoords: locationCoords[dropoff],
+        fare: summary.fare,
+        durationMin: summary.durationMin,
       });
+
+      navigate(`/ridesharing/review/${rideId}`);
     } catch (error) {
       console.error("Failed to preview ride:", error);
       alert("Could not continue to review page.");
