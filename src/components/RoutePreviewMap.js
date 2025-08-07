@@ -4,6 +4,7 @@ import { GoogleMap, Marker, Polyline, DirectionsRenderer } from "@react-google-m
 import useGoogleMaps from "../hooks/useGoogleMaps"
 import { CircularProgress, Box, Alert } from "@mui/material";
 import { useArgonController } from "../context/ArgonControllerContext";
+import logger from "../logger";
 
 /* ---------- constants ---------- */
 const CENTER_FALLBACK = { lat: 18.3419, lng: -64.9307 }; // Charlotte Amalie
@@ -78,7 +79,7 @@ export default function RoutePreviewMap({ pickupCoords, dropoffCoords }) {
       },
       (result, status) => {
         if (status === "OK") setDirections(result);
-        else console.warn("Directions request failed:", status);
+        else logger.warn("Directions request failed:", status);
       }
     );
   }, [shouldRequestRoute, pickupCoords, dropoffCoords]);

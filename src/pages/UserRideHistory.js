@@ -11,8 +11,7 @@ import {
   Button,
   CircularProgress,
 } from "@mui/material";
-import { getAuth } from "firebase/auth";
-import { db } from "../lib/firebase";
+import { db, auth } from "../lib/firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import jsPDF from "jspdf";
 
@@ -22,7 +21,7 @@ export default function UserRideHistory() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = getAuth().onAuthStateChanged((authUser) => {
+    const unsubscribe = auth.onAuthStateChanged((authUser) => {
       setUser(authUser);
     });
     return () => unsubscribe();
