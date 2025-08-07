@@ -1,6 +1,10 @@
 import React from "react";
+
+import { FaUsers, FaCog } from "react-icons/fa";
+
 import { FaUsers, FaDollarSign, FaCog } from "react-icons/fa";
 import { NavLink } from "react-router-dom";
+
 
 export const BottomNav = () => (
   <nav
@@ -8,9 +12,13 @@ export const BottomNav = () => (
                   border-t border-gray-200 dark:border-gray-700
                   flex justify-around py-2 md:hidden"
   >
+
+    <NavItem icon={<FaUsers />} label="Requests" href="/driver" />
+    <NavItem icon={<FaCog />} label="Settings" href="/driver/settings" />
     <NavItem icon={<FaUsers />} label="Requests" to="/driver" end />
     <NavItem icon={<FaDollarSign />} label="Earnings" to="/driver/earnings" />
     <NavItem icon={<FaCog />} label="Settings" to="/driver/settings" />
+
   </nav>
 );
 
