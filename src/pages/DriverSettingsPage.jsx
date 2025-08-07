@@ -11,6 +11,7 @@ import {
   Stack,
 } from "@mui/material";
 import { useArgonController } from "../context/ArgonControllerContext";
+import logger from "../logger";
 
 /**
  * Driver settings – profile + app preferences.
@@ -30,7 +31,7 @@ export default function DriverSettingsPage() {
     setProfile({ ...profile, [field]: e.target.value });
 
   const saveProfile = () => {
-    console.log("Save profile", profile);
+    logger.info("Save profile", profile);
     // Firestore .update({profile})
   };
 

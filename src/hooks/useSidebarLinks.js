@@ -1,7 +1,6 @@
 import {
   FaTachometerAlt,
   FaListAlt,
-  FaDollarSign,
   FaCog,
 } from "react-icons/fa";
 
@@ -26,13 +25,6 @@ export default function useSidebarLinks(role = "driver", counts = {}) {
       icon: FaListAlt,
       label: "Rides",
       badge: counts.rides ?? 0,
-    },
-    role !== "driver" && {
-      to: "/driver/earnings",
-      icon: FaDollarSign,
-      label: "Earnings",
-      badge: counts.settlements ?? 0,
-      roles: ["manager", "owner"],
     },
     {
       to: "/driver/settings",
