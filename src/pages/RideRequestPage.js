@@ -14,45 +14,70 @@ import { taxiRates } from "../data/taxiRates";
 import { locationCoords } from "../data/locationCoords";
 import { getLocalTaxiRate } from "../lib/getLocalTaxiRate";
 import { createRideRequest } from "../lib/createRideRequest";
-import { locationCoords } from "../data/locationCoords";
-
 import logger from "../logger";
-
-import { createRideRequest } from "../lib/createRideRequest";
 
 
 export default function RideRequestPage() {
   const navigate = useNavigate();
   const [pickup, setPickup] = useState("");
   const [dropoff, setDropoff] = useState("");
-  const [passengerCount, setPassengerCount] = useState(1);
+  const [passengerCount, setPassengerCount] = useState("1");
   const [loading, setLoading] = useState(false);
   const [farePreview, setFarePreview] = useState(null);
+  const [errors, setErrors] = useState({});
 
   const pickupOptions = [...new Set(taxiRates.map((r) => r.from))].sort();
   const dropoffOptions = [...new Set(taxiRates.map((r) => r.to))].sort();
 
+  const sanitizePassengers = (value) => {
+    const num = parseInt(value, 10);
+    return Number.isInteger(num) && num >= 1 ? num : null;
+  };
+
   const handleFarePreview = () => {
-    if (!pickup || !dropoff || pickup === dropoff) return;
+    const validationErrors = {};
+    const passengers = sanitizePassengers(passengerCount);
+
+    if (!pickup) validationErrors.pickup = "Pickup is required";
+    if (!dropoff) validationErrors.dropoff = "Dropoff is required";
+    if (pickup && dropoff && pickup === dropoff)
+      validationErrors.dropoff = "Pickup and dropoff cannot be the same";
+    if (passengers === null)
+      validationErrors.passengers = "Passenger count must be at least 1";
+
+    setErrors(validationErrors);
+    if (Object.keys(validationErrors).length) {
+      setFarePreview(null);
+      return;
+    }
 
     try {
-      const summary = getLocalTaxiRate(pickup, dropoff, passengerCount);
+      const summary = getLocalTaxiRate(pickup, dropoff, passengers);
       setFarePreview(summary);
     } catch (err) {
       logger.error("Fare preview failed:", err);
+      setErrors({ form: err.message });
       setFarePreview(null);
     }
   };
 
   const handleSubmit = () => {
-    if (!pickup || !dropoff || pickup === dropoff) {
-      alert("Please select valid locations.");
-      return;
-    }
+    const validationErrors = {};
+    const passengers = sanitizePassengers(passengerCount);
+
+    if (!pickup) validationErrors.pickup = "Pickup is required";
+    if (!dropoff) validationErrors.dropoff = "Dropoff is required";
+    if (pickup && dropoff && pickup === dropoff)
+      validationErrors.dropoff = "Pickup and dropoff cannot be the same";
+    if (passengers === null)
+      validationErrors.passengers = "Passenger count must be at least 1";
+
+    setErrors(validationErrors);
+    if (Object.keys(validationErrors).length) return;
 
     setLoading(true);
     try {
-      const summary = getLocalTaxiRate(pickup, dropoff, passengerCount);
+      const summary = getLocalTaxiRate(pickup, dropoff, passengers);
 
       const rideId = createRideRequest({
         pickup,
@@ -66,7 +91,7 @@ export default function RideRequestPage() {
       navigate(`/ridesharing/review/${rideId}`);
     } catch (error) {
       logger.error("Failed to preview ride:", error);
-      alert("Could not continue to review page.");
+      setErrors({ form: "Could not continue to review page." });
     } finally {
       setLoading(false);
     }
@@ -85,6 +110,8 @@ export default function RideRequestPage() {
           label="Pickup Location"
           value={pickup}
           onChange={(e) => setPickup(e.target.value)}
+          error={!!errors.pickup}
+          helperText={errors.pickup}
           sx={{ my: 2 }}
         >
           {pickupOptions.map((loc) => (
@@ -100,6 +127,8 @@ export default function RideRequestPage() {
           label="Dropoff Location"
           value={dropoff}
           onChange={(e) => setDropoff(e.target.value)}
+          error={!!errors.dropoff}
+          helperText={errors.dropoff}
           sx={{ mb: 2 }}
         >
           {dropoffOptions.map((loc) => (
@@ -114,8 +143,10 @@ export default function RideRequestPage() {
           type="number"
           label="Passengers"
           value={passengerCount}
-          onChange={(e) => setPassengerCount(parseInt(e.target.value))}
+          onChange={(e) => setPassengerCount(e.target.value)}
           inputProps={{ min: 1, max: 10 }}
+          error={!!errors.passengers}
+          helperText={errors.passengers}
           sx={{ mb: 2 }}
         />
 
@@ -132,6 +163,12 @@ export default function RideRequestPage() {
           <Typography variant="body1" color="primary" gutterBottom>
             💰 Estimated Fare: ${farePreview?.fare?.toFixed(2) ?? "N/A"} <br />
             ⏱ ETA: ~{farePreview?.durationMin ?? "?"} min
+          </Typography>
+        )}
+
+        {errors.form && (
+          <Typography color="error" sx={{ mb: 2 }}>
+            {errors.form}
           </Typography>
         )}
 
