@@ -1,24 +1,15 @@
 // src/pages/RideRequestPage.js
 
 import React, { useState } from "react";
-import {
-  Box,
-  Button,
-  MenuItem,
-  TextField,
-  Typography,
-  Paper,
-} from "@mui/material";
+import { Box, Button, MenuItem, TextField, Typography, Paper } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { taxiRates } from "../data/taxiRates";
 import { locationCoords } from "../data/locationCoords";
 import { getLocalTaxiRate } from "../lib/getLocalTaxiRate";
 import { createRideRequest } from "../lib/createRideRequest";
-import { locationCoords } from "../data/locationCoords";
+import { auth } from "../lib/firebase";
 
 import logger from "../logger";
-
-import { createRideRequest } from "../lib/createRideRequest";
 
 
 export default function RideRequestPage() {
@@ -44,7 +35,7 @@ export default function RideRequestPage() {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!pickup || !dropoff || pickup === dropoff) {
       alert("Please select valid locations.");
       return;
@@ -54,13 +45,15 @@ export default function RideRequestPage() {
     try {
       const summary = getLocalTaxiRate(pickup, dropoff, passengerCount);
 
-      const rideId = createRideRequest({
+      const rideId = await createRideRequest({
         pickup,
         dropoff,
         pickupCoords: locationCoords[pickup],
         dropoffCoords: locationCoords[dropoff],
         fare: summary.fare,
         durationMin: summary.durationMin,
+        passengerCount,
+        ownerId: auth.currentUser ? auth.currentUser.uid : undefined,
       });
 
       navigate(`/ridesharing/review/${rideId}`);

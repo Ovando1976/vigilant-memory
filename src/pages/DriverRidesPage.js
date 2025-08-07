@@ -10,23 +10,11 @@ import {
   Chip,
 } from "@mui/material";
 import { RideQueue } from "../components/driver/RideQueue";
-
 import logger from "../logger";
-
-import { db } from "../lib/firebase";
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  doc,
-  updateDoc,
-} from "firebase/firestore";
-
+import { subscribeToRidesByStatus, updateRide } from "../lib/rideService";
 
 /**
  * Rides page – pending, active, completed.
- * Replace the stub arrays with live Firestore selectors.
  */
 export default function DriverRidesPage() {
   const [tab, setTab] = useState(0);
@@ -35,68 +23,27 @@ export default function DriverRidesPage() {
   const [completedRides, setCompletedRides] = useState([]);
 
   useEffect(() => {
-    const fetchPending = async () => {
-      const q = query(
-        collection(db, "rideRequests"),
-        where("status", "==", "pending")
-      );
-      const snapshot = await getDocs(q);
-      setPendingRides(
-        snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
-      );
-    };
-    fetchPending();
+    const unsub = subscribeToRidesByStatus("confirmed", setPendingRides);
+    return unsub;
   }, []);
 
   useEffect(() => {
-    const fetchActive = async () => {
-      const q = query(
-        collection(db, "rideRequests"),
-        where("status", "in", ["accepted", "en-route"])
-      );
-      const snapshot = await getDocs(q);
-      setActiveRides(
-        snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
-      );
-    };
-    fetchActive();
+    const unsub = subscribeToRidesByStatus(["accepted", "en-route"], setActiveRides);
+    return unsub;
   }, []);
 
   useEffect(() => {
-    const fetchCompleted = async () => {
-      const q = query(
-        collection(db, "rideRequests"),
-        where("status", "==", "completed")
-      );
-      const snapshot = await getDocs(q);
-      setCompletedRides(
-        snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
-      );
-    };
-    fetchCompleted();
+    const unsub = subscribeToRidesByStatus("completed", setCompletedRides);
+    return unsub;
   }, []);
-
-
-  const handleAccept = (rideId) => {
-    logger.info("Accept ride", rideId);
-    // Firestore update here
 
   const handleAccept = async (rideId) => {
     try {
-      const ref = doc(db, "rideRequests", rideId);
-      await updateDoc(ref, { status: "accepted" });
-      setPendingRides((prev) => prev.filter((r) => r.id !== rideId));
-      const acceptedRide = pendingRides.find((r) => r.id === rideId);
-      if (acceptedRide) {
-        setActiveRides((prev) => [
-          ...prev,
-          { ...acceptedRide, status: "accepted" },
-        ]);
-      }
+      await updateRide(rideId, { status: "accepted" });
+      logger.info("Accept ride", rideId);
     } catch (err) {
       console.error("Accept ride", err);
     }
-
   };
 
   return (
@@ -134,10 +81,8 @@ export default function DriverRidesPage() {
           {activeRides.map((r) => (
             <ListItem key={r.id}>
               <ListItemText
-                primary={`${r.pickupLabel} ➜ ${r.dropoffLabel}`}
-                secondary={`Started ${new Date(
-                  r.startedAt
-                ).toLocaleTimeString()}`}
+                primary={`${r.pickup} ➜ ${r.dropoff}`}
+                secondary={`Passengers: ${r.passengerCount || 1}`}
               />
               <Chip label={r.status} color="warning" size="small" />
             </ListItem>
@@ -153,8 +98,8 @@ export default function DriverRidesPage() {
           {completedRides.map((r) => (
             <ListItem key={r.id}>
               <ListItemText
-                primary={`${r.pickupLabel} ➜ ${r.dropoffLabel}`}
-                secondary={`Fare $${r.fare.toFixed(2)}`}
+                primary={`${r.pickup} ➜ ${r.dropoff}`}
+                secondary={`Fare $${r.fare?.toFixed(2) || 0}`}
               />
               <Chip label="Done" color="success" size="small" />
             </ListItem>
