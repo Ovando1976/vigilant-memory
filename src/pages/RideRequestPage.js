@@ -8,8 +8,6 @@ import { taxiRates } from "../data/taxiRates";
 import { locationCoords } from "../data/locationCoords";
 import { getLocalTaxiRate } from "../lib/getLocalTaxiRate";
 import { createRideRequest } from "../lib/createRideRequest";
-
-import logger from "../logger";
 import useSnackbar from "../hooks/useSnackbar";
 
 
@@ -19,7 +17,6 @@ import logger from "../logger";
 import { auth } from "../lib/firebase";
 
 
-import logger from "../logger";
 
 
 

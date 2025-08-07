@@ -1,5 +1,6 @@
 // src/lib/createRideRequest.js
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+
 import { db } from './firebase';
 
 export async function createRideRequest({
@@ -25,6 +26,8 @@ export async function createRideRequest({
     createdAt: serverTimestamp(),
   };
 
-  const docRef = await addDoc(collection(db, 'rides'), newRide);
+
+  const docRef = await addDoc(collection(db, 'rideRequests'), newRide);
+
   return docRef.id;
 }
