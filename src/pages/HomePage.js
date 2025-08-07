@@ -20,9 +20,11 @@ import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import logger from '../logger';
+import useSnackbar from '../hooks/useSnackbar';
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const { showSnackbar, SnackbarComponent } = useSnackbar();
 
   const [pickup, setPickup] = useState('');
   const [dropoff, setDropoff] = useState('');
@@ -31,12 +33,12 @@ export default function HomePage() {
 
   const handleEstimate = () => {
     if (!pickup || !dropoff || pickup === dropoff) {
-      alert('Please select valid locations.');
+      showSnackbar('Please select valid locations.', 'warning');
       return;
     }
     const summary = getLocalTaxiRate(pickup, dropoff, 1);
     if (!summary) {
-      alert('No rate found for this route.');
+      showSnackbar('No rate found for this route.', 'error');
       setFareInfo(null);
       return;
     }
@@ -45,7 +47,7 @@ export default function HomePage() {
 
   const handleBookRide = () => {
     if (!fareInfo) {
-      alert('Please estimate your fare first.');
+      showSnackbar('Please estimate your fare first.', 'warning');
       return;
     }
     setBookingBusy(true);
@@ -61,19 +63,21 @@ export default function HomePage() {
       navigate(`/ridesharing/review/${rideId}`);
     } catch (err) {
       logger.error('🔥 handleBookRide error:', err);
-      alert('Could not create ride. Please try again.');
+       showSnackbar('Could not create ride. Please try again.', 'error');
     } finally {
       setBookingBusy(false);
     }
   };
 
   return (
-    <Box>
-      <Box
-        sx={{
-          backgroundColor: '#e6f4fa',
-          py: { xs: 6, md: 10 },
-          textAlign: 'center',
+    <>
+      <SnackbarComponent />
+      <Box>
+        <Box
+          sx={{
+            backgroundColor: '#e6f4fa',
+            py: { xs: 6, md: 10 },
+            textAlign: 'center',
           color: '#113f67',
         }}
       >
@@ -308,6 +312,7 @@ export default function HomePage() {
           </Typography>
         </Box>
       </Container>
-    </Box>
+      </Box>
+    </>
   );
 }
