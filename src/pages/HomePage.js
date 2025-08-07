@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import { taxiRates, allLocations } from '../data/taxiRates';
 import { getLocalTaxiRate } from '../lib/getLocalTaxiRate';
 import { createRideRequest } from '../lib/createRideRequest';
+import { auth } from '../lib/firebase';
 import HomeMap from '../components/HomeMap';
 import { locationCoords } from '../data/locationCoords';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
@@ -36,29 +37,37 @@ export default function HomePage() {
       showSnackbar('Please select valid locations.', 'warning');
       return;
     }
+
     const summary = getLocalTaxiRate(pickup, dropoff, 1);
     if (!summary) {
       showSnackbar('No rate found for this route.', 'error');
+
+    try {
+      const summary = getLocalTaxiRate(pickup, dropoff, 1);
+      setFareInfo(summary);
+    } catch (err) {
+      alert(err.message);
+
       setFareInfo(null);
-      return;
     }
-    setFareInfo(summary);
   };
 
-  const handleBookRide = () => {
+  const handleBookRide = async () => {
     if (!fareInfo) {
       showSnackbar('Please estimate your fare first.', 'warning');
       return;
     }
     setBookingBusy(true);
     try {
-      const rideId = createRideRequest({
+      const rideId = await createRideRequest({
         pickup,
         dropoff,
         pickupCoords: locationCoords[pickup],
         dropoffCoords: locationCoords[dropoff],
         fare: fareInfo.fare,
         durationMin: fareInfo.durationMin,
+        passengerCount: 1,
+        ownerId: auth.currentUser ? auth.currentUser.uid : undefined,
       });
       navigate(`/ridesharing/review/${rideId}`);
     } catch (err) {
