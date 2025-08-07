@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import { taxiRates, allLocations } from '../data/taxiRates';
 import { getLocalTaxiRate } from '../lib/getLocalTaxiRate';
 import { createRideRequest } from '../lib/createRideRequest';
+import { auth } from '../lib/firebase';
 import HomeMap from '../components/HomeMap';
 import { locationCoords } from '../data/locationCoords';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
@@ -43,20 +44,22 @@ export default function HomePage() {
     }
   };
 
-  const handleBookRide = () => {
+  const handleBookRide = async () => {
     if (!fareInfo) {
       alert('Please estimate your fare first.');
       return;
     }
     setBookingBusy(true);
     try {
-      const rideId = createRideRequest({
+      const rideId = await createRideRequest({
         pickup,
         dropoff,
         pickupCoords: locationCoords[pickup],
         dropoffCoords: locationCoords[dropoff],
         fare: fareInfo.fare,
         durationMin: fareInfo.durationMin,
+        passengerCount: 1,
+        ownerId: auth.currentUser ? auth.currentUser.uid : undefined,
       });
       navigate(`/ridesharing/review/${rideId}`);
     } catch (err) {

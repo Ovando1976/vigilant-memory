@@ -1,19 +1,16 @@
 // src/pages/RideRequestPage.js
 
 import React, { useState } from "react";
-import {
-  Box,
-  Button,
-  MenuItem,
-  TextField,
-  Typography,
-  Paper,
-} from "@mui/material";
+import { Box, Button, MenuItem, TextField, Typography, Paper } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { taxiRates } from "../data/taxiRates";
 import { locationCoords } from "../data/locationCoords";
 import { getLocalTaxiRate } from "../lib/getLocalTaxiRate";
 import { createRideRequest } from "../lib/createRideRequest";
+
+import { auth } from "../lib/firebase";
+
+
 import logger from "../logger";
 
 
@@ -61,6 +58,13 @@ export default function RideRequestPage() {
     }
   };
 
+
+  const handleSubmit = async () => {
+    if (!pickup || !dropoff || pickup === dropoff) {
+      alert("Please select valid locations.");
+      return;
+    }
+
   const handleSubmit = () => {
     const validationErrors = {};
     const passengers = sanitizePassengers(passengerCount);
@@ -75,17 +79,20 @@ export default function RideRequestPage() {
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length) return;
 
+
     setLoading(true);
     try {
       const summary = getLocalTaxiRate(pickup, dropoff, passengers);
 
-      const rideId = createRideRequest({
+      const rideId = await createRideRequest({
         pickup,
         dropoff,
         pickupCoords: locationCoords[pickup],
         dropoffCoords: locationCoords[dropoff],
         fare: summary.fare,
         durationMin: summary.durationMin,
+        passengerCount,
+        ownerId: auth.currentUser ? auth.currentUser.uid : undefined,
       });
 
       navigate(`/ridesharing/review/${rideId}`);

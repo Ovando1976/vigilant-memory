@@ -4,34 +4,16 @@ import { FaCar } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import MyMapView from '../components/RoutePreviewMap';
-
-/**
- * Reads a single ride object from localStorage, returns `null` if missing.
- */
-function getRideById(id) {
-  try {
-    const store = JSON.parse(localStorage.getItem('rideRequests') || '{}');
-    return store[id] ?? null;
-  } catch {
-    /* corrupt or empty storage */
-    return null;
-  }
-}
+import { subscribeToRide } from '../lib/rideService';
 
 export default function RideTrackingPage() {
   const { t } = useTranslation();
   const { rideId } = useParams();              // ← /ridesharing/track/:rideId
-  const [ride, setRide] = useState(() => getRideById(rideId));
+  const [ride, setRide] = useState(null);
 
-  /* listen for live updates from other tabs or the driver dashboard */
   useEffect(() => {
-    function handleStorage(e) {
-      if (e.key === 'rideRequests') {
-        setRide(getRideById(rideId));
-      }
-    }
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
+    const unsubscribe = subscribeToRide(rideId, setRide);
+    return unsubscribe;
   }, [rideId]);
 
   /* if nothing was found show a friendly message */
