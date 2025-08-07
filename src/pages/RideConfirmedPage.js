@@ -1,44 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Typography,
-  Paper,
-  Button,
-  CircularProgress,
-} from '@mui/material';
+import { Box, Typography, Paper, Button, CircularProgress } from '@mui/material';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { loadStripe } from '@stripe/stripe-js';
 import logger from '../logger';
+import { subscribeToRide } from '../lib/rideService';
 
 /* ------------- Stripe initialisation (CRA uses process.env) ------------- */
-const stripePromise = loadStripe(
-  process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY
-);
-
-function readRide(id) {
-  try {
-    return JSON.parse(localStorage.getItem('rideRequests') || '{}')[id] || null;
-  } catch {
-    return null;
-  }
-}
+const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
 
 export default function RideConfirmedPage() {
   const navigate   = useNavigate();
   const location   = useLocation();
   const { rideId } = useParams();
 
-  /* ---------- Retrieve ride from navigation state or localStorage ---------- */
-  const [ride, setRide] = useState(() => location.state?.ride || readRide(rideId));
+  const [ride, setRide] = useState(() => location.state?.ride || null);
   const [paying, setPaying] = useState(false);
 
-  /* keep state in sync if another tab updates localStorage */
   useEffect(() => {
-    const sync = (e) => {
-      if (e.key === 'rideRequests') setRide(readRide(rideId));
-    };
-    window.addEventListener('storage', sync);
-    return () => window.removeEventListener('storage', sync);
+    const unsubscribe = subscribeToRide(rideId, setRide);
+    return unsubscribe;
   }, [rideId]);
 
   if (!ride) {
