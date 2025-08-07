@@ -13,6 +13,7 @@ import {
   ListItemText,
   CircularProgress,
 } from "@mui/material";
+import logger from "../logger";
 
 export default function DriverProfilePage() {
   const [driver, setDriver] = useState(null);
@@ -60,7 +61,7 @@ export default function DriverProfilePage() {
   const handleAvailabilityToggle = (event) => {
     const available = event.target.checked;
     setIsAvailable(available);
-    console.log("Availability updated:", available);
+    logger.info("Availability updated:", available);
     // You can send this to an API here if needed
   };
 
