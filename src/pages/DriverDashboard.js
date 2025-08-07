@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import {
   Box,
@@ -23,24 +23,54 @@ import KpiRow from "../components/driver/KpiRow";
 import { RideQueue } from "../components/driver/RideQueue";
 import EarningsChart from "../components/driver/EarningsChart";
 import LiveMap from "../components/driver/LiveMap";
+import DriverEarnings from "../components/driver/DriverEarnings";
 import ErrorBoundary from "../components/ErrorBoundary";
 import logger from "../logger";
+
+import { useTranslation } from "react-i18next";
+
+import { db } from "../lib/firebase";
+import { collection, query, where, onSnapshot, doc, updateDoc } from "firebase/firestore";
+
 
 export default function DriverDashboard() {
   const theme = useTheme();
   const upMd = useMediaQuery(theme.breakpoints.up("md"));
+  const { t } = useTranslation();
 
   /* UI state */
   const [queueOpen, setQueueOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false); // sidebar on mobile
   const [mini, setMini] = useState(false);             // collapsed sidebar
+  const [earningsOpen, setEarningsOpen] = useState(false); // earnings drawer
 
-  /* Data placeholders (replace with Firestore) */
-  const rideRequests = [];    // populate with live data
+  /* Ride queue state */
+  const [rideRequests, setRideRequests] = useState([]);
+  const [loadingQueue, setLoadingQueue] = useState(true);
   const pendingCount = rideRequests.length;
 
-  const handleAcceptRide = (rideId) => {
+  useEffect(() => {
+    const q = query(
+      collection(db, "rideRequests"),
+      where("status", "==", "pending")
+    );
+    const unsub = onSnapshot(q, (snapshot) => {
+      setRideRequests(
+        snapshot.docs.map((d) => ({ id: d.id, ...d.data() }))
+      );
+      setLoadingQueue(false);
+    });
+    return () => unsub();
+  }, []);
+
+  const handleAcceptRide = async (rideId) => {
     logger.info("Accepted ride ID:", rideId);
+    try {
+      const ref = doc(db, "rideRequests", rideId);
+      await updateDoc(ref, { status: "accepted" });
+    } catch (err) {
+      logger.error("Accept ride", err);
+    }
   };
 
   /* Widths */
@@ -101,7 +131,7 @@ export default function DriverDashboard() {
               variant="subtitle2"
               sx={{ fontWeight: 700, color: "primary.main", mb: 1, textTransform: "uppercase" }}
             >
-              Driver Command Center
+              {t("driverCommandCenter")}
             </Typography>
             <KpiRow dense />
           </Paper>
@@ -135,7 +165,7 @@ export default function DriverDashboard() {
                 size="medium"
                 color="primary"
                 onClick={() => setQueueOpen(true)}
-                aria-label="Ride queue"
+                aria-label={t("rideQueue")}
               >
                 <ListAltIcon />
               </Fab>
@@ -145,8 +175,13 @@ export default function DriverDashboard() {
             <Fab
               size="medium"
               color="secondary"
-              onClick={() => alert("Earnings coming soon")}
+
+              onClick={() => alert(t("earningsComingSoon"))}
+              aria-label={t("earnings")}
+
+              onClick={() => setEarningsOpen(true)}
               aria-label="Earnings"
+
             >
               <MonetizationOnIcon />
             </Fab>
@@ -169,19 +204,37 @@ export default function DriverDashboard() {
           }}
         >
           <Typography variant="h6" color="primary.main">
-            Ride Requests
+            {t("rideRequests")}
           </Typography>
 
           <RideQueue
             rides={rideRequests}
-            acceptingId={null}
             onAccept={handleAcceptRide}
+            loading={loadingQueue}
           />
 
           <Typography variant="h6" color="warning.main" mt={3}>
-            Earnings Chart (Coming Soon)
+            {t("earningsChartComingSoon")}
           </Typography>
           <EarningsChart />
+        </Drawer>
+
+        {/* =========== Slide‑over Earnings =========== */}
+        <Drawer
+          anchor="right"
+          open={earningsOpen}
+          onClose={() => setEarningsOpen(false)}
+          PaperProps={{
+            sx: {
+              width: { xs: "100%", md: 420 },
+              p: 2,
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+            },
+          }}
+        >
+          <DriverEarnings />
         </Drawer>
 
         {/* =========== Bottom nav (mobile) =========== */}

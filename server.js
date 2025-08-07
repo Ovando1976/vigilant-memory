@@ -1,13 +1,21 @@
 require('dotenv').config();
 const logger = require('./logger');
+const express = require('express');
 
-logger.info('Stripe secret key loaded:', process.env.STRIPE_SECRET_KEY ? '✅ YES' : '❌ MISSING');
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+if (!stripeSecretKey) {
+  logger.error('STRIPE_SECRET_KEY environment variable is missing');
+  process.exit(1);
+}
 
+
+const stripe = require('stripe')(stripeSecretKey);
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
 const app = express();
 const PORT = process.env.PORT || 5001;
 
