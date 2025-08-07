@@ -13,6 +13,8 @@ import { useNavigate } from "react-router-dom";
 import { taxiRates } from "../data/taxiRates";
 import { locationCoords } from "../data/locationCoords";
 import { getLocalTaxiRate } from "../lib/getLocalTaxiRate";
+import { createRideRequest } from "../lib/createRideRequest";
+import { locationCoords } from "../data/locationCoords";
 
 import logger from "../logger";
 
@@ -51,6 +53,7 @@ export default function RideRequestPage() {
     setLoading(true);
     try {
       const summary = getLocalTaxiRate(pickup, dropoff, passengerCount);
+
       const rideId = createRideRequest({
         pickup,
         dropoff,
