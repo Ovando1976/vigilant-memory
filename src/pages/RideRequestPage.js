@@ -10,19 +10,17 @@ import {
   Paper,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { taxiRates } from "../data/taxiRates";
 import { locationCoords } from "../data/locationCoords";
 import { getLocalTaxiRate } from "../lib/getLocalTaxiRate";
 import { createRideRequest } from "../lib/createRideRequest";
-import { locationCoords } from "../data/locationCoords";
-
 import logger from "../logger";
-
-import { createRideRequest } from "../lib/createRideRequest";
 
 
 export default function RideRequestPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [pickup, setPickup] = useState("");
   const [dropoff, setDropoff] = useState("");
   const [passengerCount, setPassengerCount] = useState(1);
@@ -46,7 +44,7 @@ export default function RideRequestPage() {
 
   const handleSubmit = () => {
     if (!pickup || !dropoff || pickup === dropoff) {
-      alert("Please select valid locations.");
+      alert(t("selectValidLocations"));
       return;
     }
 
@@ -66,7 +64,7 @@ export default function RideRequestPage() {
       navigate(`/ridesharing/review/${rideId}`);
     } catch (error) {
       logger.error("Failed to preview ride:", error);
-      alert("Could not continue to review page.");
+      alert(t("couldNotContinue"));
     } finally {
       setLoading(false);
     }
@@ -76,13 +74,13 @@ export default function RideRequestPage() {
     <Box p={4}>
       <Paper elevation={3} sx={{ maxWidth: 500, mx: "auto", p: 4 }}>
         <Typography variant="h5" fontWeight="bold" gutterBottom>
-          Request a Ride
+          {t("requestRide")}
         </Typography>
 
         <TextField
           fullWidth
           select
-          label="Pickup Location"
+          label={t("pickupLocation")}
           value={pickup}
           onChange={(e) => setPickup(e.target.value)}
           sx={{ my: 2 }}
@@ -97,7 +95,7 @@ export default function RideRequestPage() {
         <TextField
           fullWidth
           select
-          label="Dropoff Location"
+          label={t("dropoffLocation")}
           value={dropoff}
           onChange={(e) => setDropoff(e.target.value)}
           sx={{ mb: 2 }}
@@ -112,7 +110,7 @@ export default function RideRequestPage() {
         <TextField
           fullWidth
           type="number"
-          label="Passengers"
+          label={t("passengers")}
           value={passengerCount}
           onChange={(e) => setPassengerCount(parseInt(e.target.value))}
           inputProps={{ min: 1, max: 10 }}
@@ -125,13 +123,15 @@ export default function RideRequestPage() {
           sx={{ mb: 2 }}
           onClick={handleFarePreview}
         >
-          Preview Fare
+          {t("previewFare")}
         </Button>
 
         {farePreview && (
           <Typography variant="body1" color="primary" gutterBottom>
-            💰 Estimated Fare: ${farePreview?.fare?.toFixed(2) ?? "N/A"} <br />
-            ⏱ ETA: ~{farePreview?.durationMin ?? "?"} min
+            💰 {t("estimatedFare")}: ${
+              farePreview?.fare?.toFixed(2) ?? t("notAvailable")
+            } <br />
+            ⏱ {t("eta")}: ~{farePreview?.durationMin ?? "?"} {t("minutesShort")}
           </Typography>
         )}
 
@@ -141,7 +141,7 @@ export default function RideRequestPage() {
           onClick={handleSubmit}
           disabled={loading}
         >
-          {loading ? "Loading..." : "Review Ride"}
+          {loading ? t("loading") : t("reviewRide")}
         </Button>
       </Paper>
     </Box>
