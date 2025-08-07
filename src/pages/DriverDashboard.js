@@ -23,6 +23,7 @@ import KpiRow from "../components/driver/KpiRow";
 import { RideQueue } from "../components/driver/RideQueue";
 import EarningsChart from "../components/driver/EarningsChart";
 import LiveMap from "../components/driver/LiveMap";
+import DriverEarnings from "../components/driver/DriverEarnings";
 import ErrorBoundary from "../components/ErrorBoundary";
 import logger from "../logger";
 
@@ -34,6 +35,7 @@ export default function DriverDashboard() {
   const [queueOpen, setQueueOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false); // sidebar on mobile
   const [mini, setMini] = useState(false);             // collapsed sidebar
+  const [earningsOpen, setEarningsOpen] = useState(false); // earnings drawer
 
   /* Data placeholders (replace with Firestore) */
   const rideRequests = [];    // populate with live data
@@ -145,7 +147,7 @@ export default function DriverDashboard() {
             <Fab
               size="medium"
               color="secondary"
-              onClick={() => alert("Earnings coming soon")}
+              onClick={() => setEarningsOpen(true)}
               aria-label="Earnings"
             >
               <MonetizationOnIcon />
@@ -182,6 +184,24 @@ export default function DriverDashboard() {
             Earnings Chart (Coming Soon)
           </Typography>
           <EarningsChart />
+        </Drawer>
+
+        {/* =========== Slide‑over Earnings =========== */}
+        <Drawer
+          anchor="right"
+          open={earningsOpen}
+          onClose={() => setEarningsOpen(false)}
+          PaperProps={{
+            sx: {
+              width: { xs: "100%", md: 420 },
+              p: 2,
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+            },
+          }}
+        >
+          <DriverEarnings />
         </Drawer>
 
         {/* =========== Bottom nav (mobile) =========== */}
