@@ -2,14 +2,23 @@ import { useEffect } from 'react';
 
 export function useConfettiOn(trigger) {
   useEffect(() => {
+    let cancelled = false;
+
     if (trigger) {
-      import('canvas-confetti').then((confetti) => {
-        confetti.default({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 },
-            });
+      import('canvas-confetti').then(({ default: confetti }) => {
+        if (!cancelled) {
+          confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 },
           });
         }
-      }, [trigger]);
+      });
     }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [trigger]);
+}
+
