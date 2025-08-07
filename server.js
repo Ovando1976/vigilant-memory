@@ -9,6 +9,19 @@ const app = express();
 const PORT = 5001;
 
 const BASE_CLIENT_URL = process.env.BASE_CLIENT_URL || 'http://localhost:3000';
+const MIN_CHARGE_CENTS = 50;
+
+// Attempt to initialise Firestore via firebase-admin if available
+let db = null;
+try {
+  const admin = require('firebase-admin');
+  if (!admin.apps.length) {
+    admin.initializeApp();
+  }
+  db = admin.firestore();
+} catch (err) {
+  console.warn('⚠️  Firebase Admin not initialised:', err.message);
+}
 
 app.use(express.json());
 
@@ -21,6 +34,67 @@ app.post('/api/create-checkout-session', async (req, res) => {
   try {
     const { rideId, amountCents, pickup, dropoff } = req.body;
 
+    // --------- Basic validation ---------
+    if (typeof rideId !== 'string' || !rideId.trim()) {
+      return res.status(400).json({
+        error: 'invalid_ride_id',
+        message: 'rideId must be a non-empty string',
+      });
+    }
+    if (!Number.isInteger(amountCents)) {
+      return res.status(400).json({
+        error: 'invalid_amount',
+        message: 'amountCents must be an integer',
+      });
+    }
+    if (typeof pickup !== 'string' || !pickup.trim()) {
+      return res.status(400).json({
+        error: 'invalid_pickup',
+        message: 'pickup must be provided',
+      });
+    }
+    if (typeof dropoff !== 'string' || !dropoff.trim()) {
+      return res.status(400).json({
+        error: 'invalid_dropoff',
+        message: 'dropoff must be provided',
+      });
+    }
+
+    // --------- Firestore validation ---------
+    if (!db) {
+      return res.status(500).json({
+        error: 'firestore_unavailable',
+        message: 'Firestore not initialised',
+      });
+    }
+
+    const rideSnap = await db.collection('rides').doc(rideId).get();
+    if (!rideSnap.exists) {
+      return res.status(404).json({
+        error: 'ride_not_found',
+        message: 'Ride not found',
+      });
+    }
+    const rideData = rideSnap.data();
+    const expectedAmount =
+      typeof rideData.amountCents === 'number'
+        ? rideData.amountCents
+        : Math.round((rideData.fare || 0) * 100);
+
+    if (amountCents !== expectedAmount) {
+      return res.status(400).json({
+        error: 'amount_mismatch',
+        message: 'amountCents does not match ride record',
+      });
+    }
+
+    if (amountCents < MIN_CHARGE_CENTS) {
+      return res.status(400).json({
+        error: 'amount_below_minimum',
+        message: `Minimum charge is ${MIN_CHARGE_CENTS} cents`,
+      });
+    }
+
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       payment_method_types: ['card'],
@@ -28,7 +102,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
         {
           price_data: {
             currency: 'usd',
-            unit_amount: amountCents < 50 ? 50 : amountCents, // Stripe minimum
+            unit_amount: amountCents,
             product_data: {
               name: 'Taxi ride',
               description: `${pickup} → ${dropoff}`,
