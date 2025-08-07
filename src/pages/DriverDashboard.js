@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import {
   Box,
@@ -25,6 +25,8 @@ import EarningsChart from "../components/driver/EarningsChart";
 import LiveMap from "../components/driver/LiveMap";
 import ErrorBoundary from "../components/ErrorBoundary";
 import logger from "../logger";
+import { db } from "../lib/firebase";
+import { collection, query, where, onSnapshot, doc, updateDoc } from "firebase/firestore";
 
 export default function DriverDashboard() {
   const theme = useTheme();
@@ -35,12 +37,33 @@ export default function DriverDashboard() {
   const [drawerOpen, setDrawerOpen] = useState(false); // sidebar on mobile
   const [mini, setMini] = useState(false);             // collapsed sidebar
 
-  /* Data placeholders (replace with Firestore) */
-  const rideRequests = [];    // populate with live data
+  /* Ride queue state */
+  const [rideRequests, setRideRequests] = useState([]);
+  const [loadingQueue, setLoadingQueue] = useState(true);
   const pendingCount = rideRequests.length;
 
-  const handleAcceptRide = (rideId) => {
+  useEffect(() => {
+    const q = query(
+      collection(db, "rideRequests"),
+      where("status", "==", "pending")
+    );
+    const unsub = onSnapshot(q, (snapshot) => {
+      setRideRequests(
+        snapshot.docs.map((d) => ({ id: d.id, ...d.data() }))
+      );
+      setLoadingQueue(false);
+    });
+    return () => unsub();
+  }, []);
+
+  const handleAcceptRide = async (rideId) => {
     logger.info("Accepted ride ID:", rideId);
+    try {
+      const ref = doc(db, "rideRequests", rideId);
+      await updateDoc(ref, { status: "accepted" });
+    } catch (err) {
+      logger.error("Accept ride", err);
+    }
   };
 
   /* Widths */
@@ -174,8 +197,8 @@ export default function DriverDashboard() {
 
           <RideQueue
             rides={rideRequests}
-            acceptingId={null}
             onAccept={handleAcceptRide}
+            loading={loadingQueue}
           />
 
           <Typography variant="h6" color="warning.main" mt={3}>
