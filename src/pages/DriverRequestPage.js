@@ -6,7 +6,7 @@ import { useLocation } from "react-router-dom";
 import { RoutePreviewMap } from "../components/RoutePreviewMap";
 import { locationCoords } from "../data/locationCoords";
 import { getTaxiRouteSummaryFromFirestore } from "../lib/getTaxiRouteSummaryFromFirestore";
-import { auth } from "../components/services/firebase";
+import { auth } from "../lib/firebase";
 
 const Ridesharing = () => {
   const { t } = useTranslation();
