@@ -1,5 +1,6 @@
 // src/lib/createRideRequest.js
-import { addDoc, collection } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+
 import { db } from './firebase';
 
 export async function createRideRequest({
@@ -9,6 +10,8 @@ export async function createRideRequest({
   dropoffCoords,
   fare,
   durationMin,
+  passengerCount = 1,
+  ownerId,
 }) {
   const newRide = {
     pickup,
@@ -17,10 +20,14 @@ export async function createRideRequest({
     dropoffCoords,
     fare,
     durationMin,
+    passengerCount,
+    ownerId: ownerId || null,
     status: 'requested',
-    createdAt: Date.now(),
+    createdAt: serverTimestamp(),
   };
 
+
   const docRef = await addDoc(collection(db, 'rideRequests'), newRide);
+
   return docRef.id;
 }
