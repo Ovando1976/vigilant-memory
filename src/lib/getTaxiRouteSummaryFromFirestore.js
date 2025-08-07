@@ -8,6 +8,7 @@ import {
 import { db } from "../lib/firebase";
 import { locationCoords } from "../data/locationCoords";
 
+
 import { db } from "./firebase";
 import { locationCoords } from "../data/coords";
 import logger from "../logger";
