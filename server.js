@@ -1,5 +1,8 @@
 require('dotenv').config();
-console.log('Stripe secret key loaded:', process.env.STRIPE_SECRET_KEY ? '✅ YES' : '❌ MISSING');
+const logger = require('./logger');
+
+logger.info('Stripe secret key loaded:', process.env.STRIPE_SECRET_KEY ? '✅ YES' : '❌ MISSING');
+
 const express = require('express');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const app = express();
@@ -41,11 +44,11 @@ app.post('/api/create-checkout-session', async (req, res) => {
 
     res.json({ sessionId: session.id });
   } catch (err) {
-    console.error('Stripe error:', err);
+    logger.error('Stripe error:', err);
     res.status(500).json({ error: 'stripe_error' });
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`API listening on http://localhost:${PORT}`);
+  logger.info(`API listening on http://localhost:${PORT}`);
 });

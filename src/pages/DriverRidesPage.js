@@ -10,6 +10,7 @@ import {
   Chip,
 } from "@mui/material";
 import { RideQueue } from "../components/driver/RideQueue";
+import logger from "../logger";
 
 /**
  * Rides page – pending, active, completed.
@@ -24,7 +25,7 @@ export default function DriverRidesPage() {
   const completedRides = [];    // status === "completed"
 
   const handleAccept = (rideId) => {
-    console.log("Accept ride", rideId);
+    logger.info("Accept ride", rideId);
     // Firestore update here
   };
 
