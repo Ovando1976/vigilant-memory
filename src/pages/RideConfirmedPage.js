@@ -8,6 +8,7 @@ import {
 } from '@mui/material';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { loadStripe } from '@stripe/stripe-js';
+import logger from '../logger';
 
 /* ------------- Stripe initialisation (CRA uses process.env) ------------- */
 const stripePromise = loadStripe(
@@ -77,7 +78,7 @@ export default function RideConfirmedPage() {
       const { error } = await stripe.redirectToCheckout({ sessionId });
       if (error) throw error;
     } catch (err) {
-      console.error('Stripe Checkout error', err);
+      logger.error('Stripe Checkout error', err);
       alert('Unable to start payment. Please try again.');
     } finally {
       setPaying(false);

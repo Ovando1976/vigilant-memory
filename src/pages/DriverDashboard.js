@@ -24,6 +24,7 @@ import { RideQueue } from "../components/driver/RideQueue";
 import EarningsChart from "../components/driver/EarningsChart";
 import LiveMap from "../components/driver/LiveMap";
 import ErrorBoundary from "../components/ErrorBoundary";
+import logger from "../logger";
 
 export default function DriverDashboard() {
   const theme = useTheme();
@@ -39,7 +40,7 @@ export default function DriverDashboard() {
   const pendingCount = rideRequests.length;
 
   const handleAcceptRide = (rideId) => {
-    console.log("Accepted ride ID:", rideId);
+    logger.info("Accepted ride ID:", rideId);
   };
 
   /* Widths */

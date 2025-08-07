@@ -19,6 +19,7 @@ import { locationCoords } from '../data/locationCoords';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
+import logger from '../logger';
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -59,7 +60,7 @@ export default function HomePage() {
       });
       navigate(`/ridesharing/review/${rideId}`);
     } catch (err) {
-      console.error('🔥 handleBookRide error:', err);
+      logger.error('🔥 handleBookRide error:', err);
       alert('Could not create ride. Please try again.');
     } finally {
       setBookingBusy(false);
