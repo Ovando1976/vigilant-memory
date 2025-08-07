@@ -43,14 +43,14 @@ export default function HomePage() {
     setFareInfo(summary);
   };
 
-  const handleBookRide = () => {
+  const handleBookRide = async () => {
     if (!fareInfo) {
       alert('Please estimate your fare first.');
       return;
     }
     setBookingBusy(true);
     try {
-      const rideId = createRideRequest({
+      const rideId = await createRideRequest({
         pickup,
         dropoff,
         pickupCoords: locationCoords[pickup],
