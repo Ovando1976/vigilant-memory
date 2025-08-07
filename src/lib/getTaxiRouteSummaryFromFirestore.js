@@ -4,9 +4,14 @@ import {
   where,
   getDocs,
 } from "firebase/firestore";
+
+import { db } from "../lib/firebase";
+import { locationCoords } from "../data/locationCoords";
+
 import { db } from "./firebase";
 import { locationCoords } from "../data/coords";
 import logger from "../logger";
+
 
 export async function getTaxiRouteSummaryFromFirestore(from, to, passengers = 1) {
   if (!from || !to || !passengers) {
