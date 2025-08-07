@@ -15,6 +15,7 @@ import logger from "../logger";
 import { subscribeToRidesByStatus, updateRide } from "../lib/rideService";
 
 
+
 import { db } from "../lib/firebase";
 import { doc, updateDoc } from "firebase/firestore";
 import useDriverRides from "../hooks/useDriverRides";
@@ -30,6 +31,42 @@ export default function DriverRidesPage() {
   const [completedRides, setCompletedRides] = useState([]);
 
   useEffect(() => {
+
+    const fetchRides = async () => {
+      try {
+        const q = query(
+          collection(db, "rideRequests"),
+          where("status", "in", ["pending", "accepted", "en-route", "completed"])
+        );
+        const snapshot = await getDocs(q);
+
+        const pending = [];
+        const active = [];
+        const completed = [];
+
+        snapshot.forEach((docSnap) => {
+          const ride = { id: docSnap.id, ...docSnap.data() };
+          if (ride.status === "pending") {
+            pending.push(ride);
+          } else if (ride.status === "accepted" || ride.status === "en-route") {
+            active.push(ride);
+          } else if (ride.status === "completed") {
+            completed.push(ride);
+          }
+        });
+
+        setPendingRides(pending);
+        setActiveRides(active);
+        setCompletedRides(completed);
+      } catch (err) {
+        logger.error("Fetch rides", err);
+      }
+    };
+
+    fetchRides();
+  }, []);
+
+
     const unsub = subscribeToRidesByStatus("confirmed", setPendingRides);
     return unsub;
   }, []);
@@ -45,6 +82,7 @@ export default function DriverRidesPage() {
   }, []);
 
   const { pendingRides, activeRides, completedRides, loading } = useDriverRides();
+
 
 
   const handleAccept = async (rideId) => {
@@ -118,6 +156,14 @@ export default function DriverRidesPage() {
       )}
 
 
+      {tab === 2 && (
+        <List dense disablePadding>
+          {completedRides.length === 0 && (
+            <Typography color="text.secondary">
+              No completed rides yet.
+            </Typography>
+
+
           {tab === 2 && (
             <List dense disablePadding>
               {completedRides.length === 0 && (
@@ -135,6 +181,7 @@ export default function DriverRidesPage() {
                 </ListItem>
               ))}
             </List>
+
           )}
 
           {completedRides.map((r) => (
