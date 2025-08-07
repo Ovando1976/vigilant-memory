@@ -14,11 +14,8 @@ import { taxiRates } from "../data/taxiRates";
 import { locationCoords } from "../data/locationCoords";
 import { getLocalTaxiRate } from "../lib/getLocalTaxiRate";
 import { createRideRequest } from "../lib/createRideRequest";
-import { locationCoords } from "../data/locationCoords";
 
 import logger from "../logger";
-
-import { createRideRequest } from "../lib/createRideRequest";
 
 
 export default function RideRequestPage() {
@@ -44,7 +41,7 @@ export default function RideRequestPage() {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!pickup || !dropoff || pickup === dropoff) {
       alert("Please select valid locations.");
       return;
@@ -54,7 +51,7 @@ export default function RideRequestPage() {
     try {
       const summary = getLocalTaxiRate(pickup, dropoff, passengerCount);
 
-      const rideId = createRideRequest({
+      const rideId = await createRideRequest({
         pickup,
         dropoff,
         pickupCoords: locationCoords[pickup],
