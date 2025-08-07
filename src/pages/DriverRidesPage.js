@@ -10,8 +10,10 @@ import {
   Chip,
 } from "@mui/material";
 import { RideQueue } from "../components/driver/RideQueue";
-
 import logger from "../logger";
+
+import { subscribeToRidesByStatus, updateRide } from "../lib/rideService";
+
 
 import { db } from "../lib/firebase";
 import { doc, updateDoc } from "firebase/firestore";
@@ -19,15 +21,38 @@ import useDriverRides from "../hooks/useDriverRides";
 
 /**
  * Rides page – pending, active, completed.
- * Replace the stub arrays with live Firestore selectors.
  */
 export default function DriverRidesPage() {
   const [tab, setTab] = useState(0);
+
+  const [pendingRides, setPendingRides] = useState([]);
+  const [activeRides, setActiveRides] = useState([]);
+  const [completedRides, setCompletedRides] = useState([]);
+
+  useEffect(() => {
+    const unsub = subscribeToRidesByStatus("confirmed", setPendingRides);
+    return unsub;
+  }, []);
+
+  useEffect(() => {
+    const unsub = subscribeToRidesByStatus(["accepted", "en-route"], setActiveRides);
+    return unsub;
+  }, []);
+
+  useEffect(() => {
+    const unsub = subscribeToRidesByStatus("completed", setCompletedRides);
+    return unsub;
+  }, []);
+
   const { pendingRides, activeRides, completedRides, loading } = useDriverRides();
+
 
   const handleAccept = async (rideId) => {
     logger.info("Accept ride", rideId);
     try {
+
+      await updateRide(rideId, { status: "accepted" });
+      logger.info("Accept ride", rideId);
       const ref = doc(db, "rideRequests", rideId);
       await updateDoc(ref, { status: "accepted" });
     } catch (err) {
@@ -80,6 +105,19 @@ export default function DriverRidesPage() {
             </List>
           )}
 
+          {activeRides.map((r) => (
+            <ListItem key={r.id}>
+              <ListItemText
+                primary={`${r.pickup} ➜ ${r.dropoff}`}
+                secondary={`Passengers: ${r.passengerCount || 1}`}
+              />
+              <Chip label={r.status} color="warning" size="small" />
+            </ListItem>
+          ))}
+        </List>
+      )}
+
+
           {tab === 2 && (
             <List dense disablePadding>
               {completedRides.length === 0 && (
@@ -98,7 +136,19 @@ export default function DriverRidesPage() {
               ))}
             </List>
           )}
+
+          {completedRides.map((r) => (
+            <ListItem key={r.id}>
+              <ListItemText
+                primary={`${r.pickup} ➜ ${r.dropoff}`}
+                secondary={`Fare $${r.fare?.toFixed(2) || 0}`}
+              />
+              <Chip label="Done" color="success" size="small" />
+            </ListItem>
+          ))}
+        </List>
         </>
+
       )}
     </Box>
   );
