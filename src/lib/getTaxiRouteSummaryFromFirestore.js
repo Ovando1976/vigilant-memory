@@ -5,7 +5,7 @@ import {
   getDocs,
 } from "firebase/firestore";
 import { db } from "../lib/firebase";
-import { locationCoords } from "../data/coords";
+import { locationCoords } from "../data/locationCoords";
 
 export async function getTaxiRouteSummaryFromFirestore(from, to, passengers = 1) {
   if (!from || !to || !passengers) {
