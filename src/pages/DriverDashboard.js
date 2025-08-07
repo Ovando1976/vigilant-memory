@@ -26,12 +26,17 @@ import LiveMap from "../components/driver/LiveMap";
 import DriverEarnings from "../components/driver/DriverEarnings";
 import ErrorBoundary from "../components/ErrorBoundary";
 import logger from "../logger";
+
+import { useTranslation } from "react-i18next";
+
 import { db } from "../lib/firebase";
 import { collection, query, where, onSnapshot, doc, updateDoc } from "firebase/firestore";
+
 
 export default function DriverDashboard() {
   const theme = useTheme();
   const upMd = useMediaQuery(theme.breakpoints.up("md"));
+  const { t } = useTranslation();
 
   /* UI state */
   const [queueOpen, setQueueOpen] = useState(false);
@@ -126,7 +131,7 @@ export default function DriverDashboard() {
               variant="subtitle2"
               sx={{ fontWeight: 700, color: "primary.main", mb: 1, textTransform: "uppercase" }}
             >
-              Driver Command Center
+              {t("driverCommandCenter")}
             </Typography>
             <KpiRow dense />
           </Paper>
@@ -160,7 +165,7 @@ export default function DriverDashboard() {
                 size="medium"
                 color="primary"
                 onClick={() => setQueueOpen(true)}
-                aria-label="Ride queue"
+                aria-label={t("rideQueue")}
               >
                 <ListAltIcon />
               </Fab>
@@ -170,8 +175,13 @@ export default function DriverDashboard() {
             <Fab
               size="medium"
               color="secondary"
+
+              onClick={() => alert(t("earningsComingSoon"))}
+              aria-label={t("earnings")}
+
               onClick={() => setEarningsOpen(true)}
               aria-label="Earnings"
+
             >
               <MonetizationOnIcon />
             </Fab>
@@ -194,7 +204,7 @@ export default function DriverDashboard() {
           }}
         >
           <Typography variant="h6" color="primary.main">
-            Ride Requests
+            {t("rideRequests")}
           </Typography>
 
           <RideQueue
@@ -204,7 +214,7 @@ export default function DriverDashboard() {
           />
 
           <Typography variant="h6" color="warning.main" mt={3}>
-            Earnings Chart (Coming Soon)
+            {t("earningsChartComingSoon")}
           </Typography>
           <EarningsChart />
         </Drawer>

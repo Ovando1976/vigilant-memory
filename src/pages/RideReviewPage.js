@@ -2,12 +2,14 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Button, Paper, Typography, Grid } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import MyMapView from '../components/RoutePreviewMap';
 import { subscribeToRide, updateRide } from '../lib/rideService';
 
 export default function RideReviewPage() {
   const { rideId } = useParams();
   const navigate   = useNavigate();
+  const { t } = useTranslation();
 
   const [ride, setRide] = useState(null);
 
@@ -21,10 +23,10 @@ export default function RideReviewPage() {
     return (
       <Box p={4}>
         <Typography variant="h5" gutterBottom>
-          Ride not found
+          {t('rideNotFound')}
         </Typography>
         <Button variant="contained" onClick={() => navigate(-1)}>
-          Back
+          {t('back')}
         </Button>
       </Box>
     );
@@ -54,31 +56,31 @@ export default function RideReviewPage() {
     <Box p={{ xs: 2, md: 4 }}>
       <Paper sx={{ p: { xs: 3, md: 4 }, maxWidth: 720, mx: 'auto' }}>
         <Typography variant="h4" fontWeight="bold" gutterBottom>
-          Review Your Ride
+          {t('reviewYourRide')}
         </Typography>
 
         <Grid container spacing={2} mb={2}>
           <Grid item xs={6}>
             <Typography variant="subtitle2" color="text.secondary">
-              Pickup
+              {t('pickup')}
             </Typography>
             <Typography>{pickup}</Typography>
           </Grid>
           <Grid item xs={6}>
             <Typography variant="subtitle2" color="text.secondary">
-              Drop‑off
+              {t('dropoff')}
             </Typography>
             <Typography>{dropoff}</Typography>
           </Grid>
           <Grid item xs={6}>
             <Typography variant="subtitle2" color="text.secondary">
-              Estimated Fare
+              {t('estimatedFare')}
             </Typography>
             <Typography>${fare.toFixed(2)}</Typography>
           </Grid>
           <Grid item xs={6}>
             <Typography variant="subtitle2" color="text.secondary">
-              ETA
+              {t('eta')}
             </Typography>
             <Typography>{durationMin} min</Typography>
           </Grid>
@@ -95,12 +97,12 @@ export default function RideReviewPage() {
 
         <Box textAlign="right">
           <Button variant="outlined" sx={{ mr: 2 }} onClick={() => navigate(-1)}>
-            Cancel
+            {t('cancel')}
           </Button>
           <Button variant="contained" onClick={handleConfirm}>
-            Confirm Ride
+            {t('confirmRide')}
           </Button>
-        </Box>
+      </Box>
       </Paper>
     </Box>
   );
