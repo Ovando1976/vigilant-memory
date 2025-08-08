@@ -8,7 +8,7 @@ jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (str) => str }) 
 jest.mock('../lib/getTaxiRouteSummaryFromFirestore');
 import { getTaxiRouteSummaryFromFirestore } from '../lib/getTaxiRouteSummaryFromFirestore';
 
-jest.mock('../components/services/firebase', () => ({
+jest.mock('../lib/firebase', () => ({
   auth: {
     onAuthStateChanged: (cb) => {
       cb({ email: 'driver@example.com' });
