@@ -1,8 +1,6 @@
 import React, { useRef, useEffect } from 'react';
-import mapboxgl from 'mapbox-gl';
+import mapboxgl from '../lib/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
-
-mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
 export default function TrackMap() {
   const mapRef = useRef(null);
