@@ -14,15 +14,20 @@ import { useNavigate } from 'react-router-dom';
 import { taxiRates, allLocations } from '../data/taxiRates';
 import { getLocalTaxiRate } from '../lib/getLocalTaxiRate';
 import { createRideRequest } from '../lib/createRideRequest';
+import { auth } from '../lib/firebase';
 import HomeMap from '../components/HomeMap';
 import { locationCoords } from '../data/locationCoords';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import logger from '../logger';
+  
+import useSnackbar from '../hooks/useSnackbar';
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const { showSnackbar, SnackbarComponent } = useSnackbar();
+
 
   const [pickup, setPickup] = useState('');
   const [dropoff, setDropoff] = useState('');
@@ -31,49 +36,71 @@ export default function HomePage() {
 
   const handleEstimate = () => {
     if (!pickup || !dropoff || pickup === dropoff) {
-      alert('Please select valid locations.');
+
+      showSnackbar('Please select valid locations.', 'warning', 4000);
+
+      showSnackbar('Please select valid locations.', 'warning');
+
       return;
     }
+
     const summary = getLocalTaxiRate(pickup, dropoff, 1);
     if (!summary) {
-      alert('No rate found for this route.');
+
+      showSnackbar('No rate found for this route.', 'warning', 4000);
+
+    try {
+      const summary = getLocalTaxiRate(pickup, dropoff, 1);
+      setFareInfo(summary);
+    } catch (err) {
+      alert(err.message);
+
+
       setFareInfo(null);
-      return;
     }
-    setFareInfo(summary);
   };
 
-  const handleBookRide = () => {
+  const handleBookRide = async () => {
     if (!fareInfo) {
-      alert('Please estimate your fare first.');
+
+      showSnackbar('Please estimate your fare first.', 'warning', 4000);
+
       return;
     }
     setBookingBusy(true);
     try {
-      const rideId = createRideRequest({
+      const rideId = await createRideRequest({
         pickup,
         dropoff,
         pickupCoords: locationCoords[pickup],
         dropoffCoords: locationCoords[dropoff],
         fare: fareInfo.fare,
         durationMin: fareInfo.durationMin,
+        passengerCount: 1,
+        ownerId: auth.currentUser ? auth.currentUser.uid : undefined,
       });
       navigate(`/ridesharing/review/${rideId}`);
     } catch (err) {
       logger.error('🔥 handleBookRide error:', err);
-      alert('Could not create ride. Please try again.');
+
+      showSnackbar('Could not create ride. Please try again.', 'error', 6000);
+
+       showSnackbar('Could not create ride. Please try again.', 'error');
+
     } finally {
       setBookingBusy(false);
     }
   };
 
   return (
-    <Box>
-      <Box
-        sx={{
-          backgroundColor: '#e6f4fa',
-          py: { xs: 6, md: 10 },
-          textAlign: 'center',
+    <>
+      <SnackbarComponent />
+      <Box>
+        <Box
+          sx={{
+            backgroundColor: '#e6f4fa',
+            py: { xs: 6, md: 10 },
+            textAlign: 'center',
           color: '#113f67',
         }}
       >
@@ -308,6 +335,7 @@ export default function HomePage() {
           </Typography>
         </Box>
       </Container>
-    </Box>
+      </Box>
+    </>
   );
 }
