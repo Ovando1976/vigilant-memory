@@ -1,9 +1,7 @@
 // src/components/HomeMap.js
 import React, { useRef, useEffect } from 'react';
-import mapboxgl from 'mapbox-gl';
+import mapboxgl from '../lib/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
-
-mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
 
 export default function HomeMap({ pickupCoords, dropoffCoords }) {
   const mapRef = useRef(null);
