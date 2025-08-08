@@ -12,6 +12,11 @@ import {
 } from "@mui/material";
 import { useArgonController } from "../context/ArgonControllerContext";
 import logger from "../logger";
+import {
+  requestPermission as requestPushPermission,
+  getToken as getPushToken,
+  onMessage as onPushMessage,
+} from "../utilities/notify";
 
 /**
  * Driver settings – profile + app preferences.
@@ -34,6 +39,33 @@ export default function DriverSettingsPage() {
     logger.info("Save profile", profile);
     // Firestore .update({profile})
   };
+
+  const [notificationsEnabled, setNotificationsEnabled] = React.useState(false);
+
+  const handleNotificationToggle = async (e) => {
+    const enable = e.target.checked;
+    setNotificationsEnabled(enable);
+    if (!enable) return;
+    try {
+      await requestPushPermission();
+      const token = await getPushToken();
+      if (token) {
+        logger.info("FCM token", token);
+      }
+    } catch (err) {
+      logger.error("Notifications setup failed", err);
+      setNotificationsEnabled(false);
+    }
+  };
+
+  React.useEffect(() => {
+    if (!notificationsEnabled) return undefined;
+    const unsubscribe = onPushMessage((payload) => {
+      const { title, body } = payload.notification || {};
+      alert(`${title ?? "Notification"}\n${body ?? ""}`);
+    });
+    return unsubscribe;
+  }, [notificationsEnabled]);
 
   return (
     <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 640 }}>
@@ -101,7 +133,12 @@ export default function DriverSettingsPage() {
           />
 
           <FormControlLabel
-            control={<Switch defaultChecked />}
+            control={
+              <Switch
+                checked={notificationsEnabled}
+                onChange={handleNotificationToggle}
+              />
+            }
             label="Push Notifications"
           />
         </CardContent>

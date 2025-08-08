@@ -1,15 +1,37 @@
 require('dotenv').config();
 const logger = require('./logger');
 
-logger.info('Stripe secret key loaded:', process.env.STRIPE_SECRET_KEY ? '✅ YES' : '❌ MISSING');
+if (process.env.DEBUG) {
+  logger.info(
+    'Stripe secret key loaded:',
+    process.env.STRIPE_SECRET_KEY ? '✅ YES' : '❌ MISSING'
+  );
+}
+
 
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+
+if (!process.env.STRIPE_SECRET_KEY) {
+  logger.error('STRIPE_SECRET_KEY is not defined.');
+  process.exit(1);
+}
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+if (!stripeSecretKey) {
+  logger.error('STRIPE_SECRET_KEY environment variable is missing');
+  process.exit(1);
+}
+
+const stripe = require('stripe')(stripeSecretKey);
+
+
 const app = express();
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT ?? 5001;
 
 const BASE_CLIENT_URL = process.env.BASE_CLIENT_URL || 'http://localhost:3000';
 const MIN_CHARGE_CENTS = 50;
@@ -23,7 +45,7 @@ try {
   }
   db = admin.firestore();
 } catch (err) {
-  console.warn('⚠️  Firebase Admin not initialised:', err.message);
+  logger.warn('⚠️  Firebase Admin not initialised:', err.message);
 }
 
 app.use(cors({ origin: BASE_CLIENT_URL }));

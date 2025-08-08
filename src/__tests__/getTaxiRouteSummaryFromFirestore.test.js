@@ -9,7 +9,7 @@ jest.mock('firebase/firestore', () => ({
   getDocs: (...args) => mockGetDocs(...args),
 }));
 
-jest.mock('../data/coords', () => ({
+jest.mock('../data/locationCoords', () => ({
   locationCoords: {
     A: { lat: 0, lng: 0 },
     B: { lat: 0, lng: 1 },
