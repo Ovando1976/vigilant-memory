@@ -1,13 +1,31 @@
 import React, { createContext, useContext, useReducer } from "react";
 
 /* ---------- state ---------- */
-const initialState = { darkMode: false, gtaMode: false };
+const storeKey = "argonPrefs";
+const baseState = { darkMode: false, gtaMode: false };
+
+function init(initial) {
+  try {
+    return JSON.parse(localStorage.getItem(storeKey)) || initial;
+  } catch {
+    return initial;
+  }
+}
 
 function reducer(state, action) {
   switch (action.type) {
-    case "TOGGLE_DARK": return { ...state, darkMode: !state.darkMode };
-    case "TOGGLE_GTA":  return { ...state, gtaMode:  !state.gtaMode };
-    default:            return state;
+    case "TOGGLE_DARK": {
+      const next = { ...state, darkMode: !state.darkMode };
+      try { localStorage.setItem(storeKey, JSON.stringify(next)); } catch {}
+      return next;
+    }
+    case "TOGGLE_GTA": {
+      const next = { ...state, gtaMode: !state.gtaMode };
+      try { localStorage.setItem(storeKey, JSON.stringify(next)); } catch {}
+      return next;
+    }
+    default:
+      return state;
   }
 }
 
@@ -16,7 +34,7 @@ const ArgonControllerContext = createContext();
 
 /* ---------- provider ---------- */
 export function ArgonControllerProvider({ children }) {
-  const value = useReducer(reducer, initialState);
+  const value = useReducer(reducer, baseState, init);
   return (
     <ArgonControllerContext.Provider value={value}>
       {children}
