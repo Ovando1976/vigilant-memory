@@ -1,28 +1,19 @@
 // src/pages/RideRequestPage.js
 
 import React, { useState } from "react";
-import {
-  Box,
-  Button,
-  MenuItem,
-  TextField,
-  Typography,
-  Paper,
-} from "@mui/material";
+import { Box, Button, MenuItem, TextField, Typography, Paper } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { taxiRates } from "../data/taxiRates";
 import { locationCoords } from "../data/locationCoords";
 import { getLocalTaxiRate } from "../lib/getLocalTaxiRate";
 import { createRideRequest } from "../lib/createRideRequest";
-import { locationCoords } from "../data/locationCoords";
-
 import logger from "../logger";
-
-import { createRideRequest } from "../lib/createRideRequest";
+import { useSnackbar } from "../components/SnackbarProvider";
 
 
 export default function RideRequestPage() {
   const navigate = useNavigate();
+  const showSnackbar = useSnackbar();
   const [pickup, setPickup] = useState("");
   const [dropoff, setDropoff] = useState("");
   const [passengerCount, setPassengerCount] = useState(1);
@@ -46,7 +37,7 @@ export default function RideRequestPage() {
 
   const handleSubmit = () => {
     if (!pickup || !dropoff || pickup === dropoff) {
-      alert("Please select valid locations.");
+      showSnackbar("Please select valid locations.", "warning", 4000);
       return;
     }
 
@@ -66,7 +57,7 @@ export default function RideRequestPage() {
       navigate(`/ridesharing/review/${rideId}`);
     } catch (error) {
       logger.error("Failed to preview ride:", error);
-      alert("Could not continue to review page.");
+      showSnackbar("Could not continue to review page.", "error", 6000);
     } finally {
       setLoading(false);
     }

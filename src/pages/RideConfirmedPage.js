@@ -9,6 +9,7 @@ import {
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { loadStripe } from '@stripe/stripe-js';
 import logger from '../logger';
+import { useSnackbar } from '../components/SnackbarProvider';
 
 /* ------------- Stripe initialisation (CRA uses process.env) ------------- */
 const stripePromise = loadStripe(
@@ -27,6 +28,7 @@ export default function RideConfirmedPage() {
   const navigate   = useNavigate();
   const location   = useLocation();
   const { rideId } = useParams();
+  const showSnackbar = useSnackbar();
 
   /* ---------- Retrieve ride from navigation state or localStorage ---------- */
   const [ride, setRide] = useState(() => location.state?.ride || readRide(rideId));
@@ -79,7 +81,7 @@ export default function RideConfirmedPage() {
       if (error) throw error;
     } catch (err) {
       logger.error('Stripe Checkout error', err);
-      alert('Unable to start payment. Please try again.');
+      showSnackbar('Unable to start payment. Please try again.', 'error', 6000);
     } finally {
       setPaying(false);
     }

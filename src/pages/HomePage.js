@@ -20,9 +20,11 @@ import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import logger from '../logger';
+import { useSnackbar } from '../components/SnackbarProvider';
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const showSnackbar = useSnackbar();
 
   const [pickup, setPickup] = useState('');
   const [dropoff, setDropoff] = useState('');
@@ -31,12 +33,12 @@ export default function HomePage() {
 
   const handleEstimate = () => {
     if (!pickup || !dropoff || pickup === dropoff) {
-      alert('Please select valid locations.');
+      showSnackbar('Please select valid locations.', 'warning', 4000);
       return;
     }
     const summary = getLocalTaxiRate(pickup, dropoff, 1);
     if (!summary) {
-      alert('No rate found for this route.');
+      showSnackbar('No rate found for this route.', 'warning', 4000);
       setFareInfo(null);
       return;
     }
@@ -45,7 +47,7 @@ export default function HomePage() {
 
   const handleBookRide = () => {
     if (!fareInfo) {
-      alert('Please estimate your fare first.');
+      showSnackbar('Please estimate your fare first.', 'warning', 4000);
       return;
     }
     setBookingBusy(true);
@@ -61,7 +63,7 @@ export default function HomePage() {
       navigate(`/ridesharing/review/${rideId}`);
     } catch (err) {
       logger.error('🔥 handleBookRide error:', err);
-      alert('Could not create ride. Please try again.');
+      showSnackbar('Could not create ride. Please try again.', 'error', 6000);
     } finally {
       setBookingBusy(false);
     }
