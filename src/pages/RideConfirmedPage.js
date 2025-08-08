@@ -17,6 +17,7 @@ export default function RideConfirmedPage() {
   const navigate   = useNavigate();
   const location   = useLocation();
   const { rideId } = useParams();
+  const showSnackbar = useSnackbar();
 
   const { showSnackbar, SnackbarComponent } = useSnackbar();
 
@@ -86,6 +87,9 @@ export default function RideConfirmedPage() {
       if (error) throw error;
     } catch (err) {
       logger.error('Stripe Checkout error', err);
+
+      showSnackbar('Unable to start payment. Please try again.', 'error', 6000);
+
 
       showSnackbar('Unable to start payment. Please try again.', 'error');
 

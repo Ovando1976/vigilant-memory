@@ -16,13 +16,13 @@ import useSnackbar from "../hooks/useSnackbar";
 import { auth } from "../lib/firebase";
 
 
-
 export default function RideRequestPage() {
   const navigate = useNavigate();
 
   const { showSnackbar, SnackbarComponent } = useSnackbar();
 
   const { t } = useTranslation();
+
 
   const [pickup, setPickup] = useState("");
   const [dropoff, setDropoff] = useState("");
@@ -117,7 +117,6 @@ export default function RideRequestPage() {
       alert(t("couldNotContinue"));
 
       setErrors({ form: "Could not continue to review page." });
-
 
     } finally {
       setLoading(false);
