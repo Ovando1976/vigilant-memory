@@ -1,13 +1,13 @@
 // src/components/HomeMap.js
 import React, { useRef, useEffect } from 'react';
-import mapboxgl from 'mapbox-gl';
+import mapboxgl from '../lib/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
-
-mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
 
 export default function HomeMap({ pickupCoords, dropoffCoords }) {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
+  const pickupMarkerRef = useRef(null);
+  const dropoffMarkerRef = useRef(null);
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -24,12 +24,31 @@ export default function HomeMap({ pickupCoords, dropoffCoords }) {
 
     mapInstance.current = map;
 
-    return () => map.remove();
+    return () => {
+      pickupMarkerRef.current?.remove();
+      dropoffMarkerRef.current?.remove();
+      pickupMarkerRef.current = null;
+      dropoffMarkerRef.current = null;
+      map.remove();
+    };
   }, []);
 
   useEffect(() => {
     const map = mapInstance.current;
-    if (!map || !pickupCoords || !dropoffCoords) return;
+    if (!map) return;
+
+    // Remove existing markers before adding new ones
+    if (pickupMarkerRef.current) {
+      pickupMarkerRef.current.remove();
+      pickupMarkerRef.current = null;
+  }
+
+    if (dropoffMarkerRef.current) {
+      dropoffMarkerRef.current.remove();
+      dropoffMarkerRef.current = null;
+    }
+
+    if (!pickupCoords || !dropoffCoords) return;
 
     const bounds = new mapboxgl.LngLatBounds();
     bounds.extend([pickupCoords.lng, pickupCoords.lat]);
@@ -40,13 +59,21 @@ export default function HomeMap({ pickupCoords, dropoffCoords }) {
       duration: 1600,
     });
 
-    new mapboxgl.Marker({ color: '#0077b6' })
+    pickupMarkerRef.current = new mapboxgl.Marker({ color: '#0077b6' })
       .setLngLat([pickupCoords.lng, pickupCoords.lat])
       .addTo(map);
 
-    new mapboxgl.Marker({ color: '#ff6f5b' })
+    dropoffMarkerRef.current = new mapboxgl.Marker({ color: '#ff6f5b' })
       .setLngLat([dropoffCoords.lng, dropoffCoords.lat])
       .addTo(map);
+
+    // Optionally reset markers when dependencies change or component unmounts
+    return () => {
+      pickupMarkerRef.current?.remove();
+      dropoffMarkerRef.current?.remove();
+      pickupMarkerRef.current = null;
+      dropoffMarkerRef.current = null;
+    };
   }, [pickupCoords, dropoffCoords]);
 
   return (
