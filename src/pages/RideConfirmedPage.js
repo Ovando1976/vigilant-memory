@@ -1,52 +1,59 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Typography,
-  Paper,
-  Button,
-  CircularProgress,
-} from '@mui/material';
+import { Box, Typography, Paper, Button, CircularProgress } from '@mui/material';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { loadStripe } from '@stripe/stripe-js';
+import { useTranslation } from 'react-i18next';
 import logger from '../logger';
 
-/* ------------- Stripe initialisation (CRA uses process.env) ------------- */
-const stripePromise = loadStripe(
-  process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY
-);
+import useSnackbar from '../hooks/useSnackbar';
 
-function readRide(id) {
-  try {
-    return JSON.parse(localStorage.getItem('rideRequests') || '{}')[id] || null;
-  } catch {
-    return null;
-  }
-}
+import { subscribeToRide } from '../lib/rideService';
+
+
+/* ------------- Stripe initialisation (CRA uses process.env) ------------- */
+const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
 
 export default function RideConfirmedPage() {
   const navigate   = useNavigate();
   const location   = useLocation();
   const { rideId } = useParams();
 
-  /* ---------- Retrieve ride from navigation state or localStorage ---------- */
-  const [ride, setRide] = useState(() => location.state?.ride || readRide(rideId));
+  const { showSnackbar, SnackbarComponent } = useSnackbar();
+
+  const { t } = useTranslation();
+
+
+  const [ride, setRide] = useState(() => location.state?.ride || null);
   const [paying, setPaying] = useState(false);
 
+
+  /* --------------------------- Cancel ride handler --------------------------- */
+  const handleCancelRide = () => {
+    try {
+      const store = JSON.parse(localStorage.getItem('rideRequests') || '{}');
+      if (store[rideId]) {
+        store[rideId] = { ...store[rideId], status: 'cancelled' };
+        localStorage.setItem('rideRequests', JSON.stringify(store));
+      }
+    } catch (err) {
+      logger.warn('Failed to cancel ride', err);
+    }
+    navigate('/home');
+  };
+
   /* keep state in sync if another tab updates localStorage */
+
   useEffect(() => {
-    const sync = (e) => {
-      if (e.key === 'rideRequests') setRide(readRide(rideId));
-    };
-    window.addEventListener('storage', sync);
-    return () => window.removeEventListener('storage', sync);
+    const unsubscribe = subscribeToRide(rideId, setRide);
+    return unsubscribe;
   }, [rideId]);
 
   if (!ride) {
     return (
       <Box p={4}>
-        <Typography variant="h6">No ride data found.</Typography>
+        <Typography variant="h6">{t('noRideData')}</Typography>
         <Button variant="outlined" onClick={() => navigate('/home')}>
-          Return Home
+          {t('returnHome')}
         </Button>
       </Box>
     );
@@ -79,7 +86,11 @@ export default function RideConfirmedPage() {
       if (error) throw error;
     } catch (err) {
       logger.error('Stripe Checkout error', err);
-      alert('Unable to start payment. Please try again.');
+
+      showSnackbar('Unable to start payment. Please try again.', 'error');
+
+      alert(t('unableToStartPayment'));
+
     } finally {
       setPaying(false);
     }
@@ -87,26 +98,35 @@ export default function RideConfirmedPage() {
 
   /* ------------------------------- UI ------------------------------------ */
   return (
-    <Box p={4}>
+    <>
+      <SnackbarComponent />
+      <Box p={4}>
       <Paper sx={{ p: 4, mb: 3 }}>
         <Typography variant="h4" fontWeight={600} color="primary" gutterBottom>
-          🎉 Ride Confirmed!
+          {t('rideConfirmed')}
         </Typography>
         <Typography variant="subtitle1" gutterBottom>
-          Your ride is being dispatched. You’ll be notified once a driver accepts.
+          {t('rideDispatched')}
         </Typography>
 
         <Box mt={3}>
-          <Typography variant="h6">Trip Summary</Typography>
-          <Typography>📍 Pickup: <strong>{ride.pickup}</strong></Typography>
-          <Typography>🏁 Drop‑off: <strong>{ride.dropoff}</strong></Typography>
-          <Typography>👥 Passengers: {ride.passengerCount || 1}</Typography>
+          <Typography variant="h6">{t('tripSummary')}</Typography>
           <Typography>
-            💰 Estimated Fare: $
-            {ride.fare != null ? ride.fare.toFixed(2) : '—'}
+            📍 {t('pickup')}: <strong>{ride.pickup}</strong>
           </Typography>
           <Typography>
-            ⏱️ ETA: {ride.durationMin != null ? `${ride.durationMin} min` : '—'}
+            🏁 {t('dropoff')}: <strong>{ride.dropoff}</strong>
+          </Typography>
+          <Typography>
+            👥 {t('passengers')}: {ride.passengerCount || 1}
+          </Typography>
+          <Typography>
+            💰 {t('estimatedFare')}: ${
+              ride.fare != null ? ride.fare.toFixed(2) : '—'
+            }
+          </Typography>
+          <Typography>
+            ⏱️ {t('eta')}: {ride.durationMin != null ? `${ride.durationMin} ${t('minutesShort')}` : '—'}
           </Typography>
         </Box>
       </Paper>
@@ -116,11 +136,19 @@ export default function RideConfirmedPage() {
           variant="contained"
           onClick={() => navigate(`../track/${rideId}`)}
         >
-          Track Ride
+          {t('trackRide')}
         </Button>
 
         <Button variant="outlined" onClick={() => navigate('/home')}>
-          Return Home
+          {t('returnHome')}
+        </Button>
+
+        <Button
+          variant="outlined"
+          color="error"
+          onClick={handleCancelRide}
+        >
+          Cancel Ride
         </Button>
 
         <Button
@@ -129,9 +157,10 @@ export default function RideConfirmedPage() {
           disabled={paying}
           onClick={handlePayNow}
         >
-          {paying ? <CircularProgress size={22} /> : 'Pay Now'}
+          {paying ? <CircularProgress size={22} /> : t('payNow')}
         </Button>
       </Box>
-    </Box>
+      </Box>
+    </>
   );
 }

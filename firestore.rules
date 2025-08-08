@@ -2,10 +2,25 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // Helper Functions
+    // ------------------------------------------------------------------
+    // Determines if the request is authenticated.
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Checks whether the user has the `admin` role via custom auth claims.
+    // Example: set { role: 'admin' } in Firebase Authentication custom claims.
+    function isAdmin() {
+      return request.auth != null && request.auth.token.role == 'admin';
+    }
     
-    // 🔐 User Profiles: Allow any authenticated user to read/write their profile.
+    // 🔐 User Profiles
+    // Only the authenticated user may read or modify their own profile document.
+    // Admins (users with `role == 'admin'` in their auth token) may manage any profile.
     match /users/{userId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isSignedIn() && (request.auth.uid == userId || isAdmin());
     }
     
     // 💬 Chat Messages: Allow any authenticated user to read/write messages.
@@ -28,19 +43,31 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
     
-    // 🚘 VIBER - Ride Booking System: Allow all authenticated users to create, update, and delete rides.
+    // 🚘 VIBER - Ride Booking System
+    // Each ride document must contain an `ownerId` field representing the user who created the ride.
+    // Only the ride owner or an admin can view or modify the ride.
+    // Example document:
+    //   {
+    //     ownerId: "uid123",
+    //     from: "A",
+    //     to: "B"
+    //   }
     match /rides/{rideId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isSignedIn() && (request.auth.uid == resource.data.ownerId || isAdmin());
     }
     
-    // 🚖 Drivers: Allow any authenticated user to view and update driver data.
+    // 🚖 Drivers
+    // Driver documents should include a `userId` field linking the driver to their auth UID.
+    // Only that user or an admin can access or modify the driver record.
     match /drivers/{driverId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isSignedIn() && (request.auth.uid == resource.data.userId || isAdmin());
     }
     
-    // 💵 Payments: Allow any authenticated user to read/write payment records (for testing).
+    // 💵 Payments
+    // Payment documents must store an `ownerId` identifying who made the payment.
+    // Access is restricted to that user or an admin.
     match /payments/{paymentId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isSignedIn() && (request.auth.uid == resource.data.ownerId || isAdmin());
     }
     
     // 📌 Notifications: Allow any authenticated user to read and create notifications.

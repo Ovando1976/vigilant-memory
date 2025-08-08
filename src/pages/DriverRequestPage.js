@@ -21,7 +21,10 @@ const Ridesharing = () => {
   const [duration, setDuration] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => auth.onAuthStateChanged(setUser), []);
+  useEffect(() => {
+    const unsub = auth.onAuthStateChanged(setUser);
+    return () => unsub();
+  }, []);
 
   const pickupCoords = locationCoords[pickupLocation];
   const dropoffCoords = locationCoords[dropoffLocation];
