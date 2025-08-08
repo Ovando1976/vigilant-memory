@@ -31,6 +31,7 @@ import DriverEarningsPage from "./pages/DriverEarningsPage";
 import DriverSettingsPage from "./pages/DriverSettingsPage";
 import TestMap from "./pages/TestMap";
 import UserRideHistory from "./pages/UserRideHistory";
+import { SnackbarProvider } from "./components/SnackbarProvider";
 
 /* ─────── themes ─────── */
 const gtaDarkTheme = createTheme({
@@ -132,7 +133,9 @@ function AppShell() {
 export default function App() {
   return (
     <ArgonControllerProvider>
-      <AppShell />
+      <SnackbarProvider>
+        <AppShell />
+      </SnackbarProvider>
     </ArgonControllerProvider>
   );
 }
