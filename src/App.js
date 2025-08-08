@@ -16,6 +16,7 @@ import {
   ArgonControllerProvider,
   useArgonController,
 } from "./context/ArgonControllerContext";
+import { AuthProvider } from "./context/AuthContext";
 
 /* ─────── pages ─────── */
 import HomePage from "./pages/HomePage";
@@ -31,7 +32,11 @@ import DriverEarningsPage from "./pages/DriverEarningsPage";
 import DriverSettingsPage from "./pages/DriverSettingsPage";
 import TestMap from "./pages/TestMap";
 import UserRideHistory from "./pages/UserRideHistory";
+import SignInPage from "./pages/SignInPage";
+import SignUpPage from "./pages/SignUpPage";
+import PrivateRoute from "./components/PrivateRoute";
 import { SnackbarProvider } from "./components/SnackbarProvider";
+
 
 /* ─────── themes ─────── */
 const gtaDarkTheme = createTheme({
@@ -96,6 +101,8 @@ function AppShell() {
         {/* Public */}
         <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="/home" element={<HomePage />} />
+        <Route path="/signin" element={<SignInPage />} />
+        <Route path="/signup" element={<SignUpPage />} />
 
         {/* Rider workflow */}
         <Route path="/ridesharing" element={<Ridesharing />}>
@@ -107,7 +114,7 @@ function AppShell() {
         </Route>
 
         {/* Driver workflow */}
-        <Route path="/driver" element={<DriverDashboard />}>
+        <Route path="/driver" element={<PrivateRoute><DriverDashboard /></PrivateRoute>}>
           <Route index element={<Navigate to="profile" replace />} />
           <Route path="profile" element={<DriverProfilePage />} />
           <Route path="requests" element={<DriverRidesPage />} />
@@ -116,7 +123,7 @@ function AppShell() {
         </Route>
 
         {/* Misc */}
-        <Route path="/profile/rides" element={<UserRideHistory />} />
+        <Route path="/profile/rides" element={<PrivateRoute><UserRideHistory /></PrivateRoute>} />
         <Route path="/test-map" element={<TestMap />} />
 
         {/* 404 */}
@@ -133,9 +140,11 @@ function AppShell() {
 export default function App() {
   return (
     <ArgonControllerProvider>
+      <AuthProvider>
       <SnackbarProvider>
         <AppShell />
       </SnackbarProvider>
+    </AuthProvider>
     </ArgonControllerProvider>
   );
 }
