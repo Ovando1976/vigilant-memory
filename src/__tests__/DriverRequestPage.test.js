@@ -8,6 +8,16 @@ jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (str) => str }) 
 jest.mock('../lib/getTaxiRouteSummaryFromFirestore');
 import { getTaxiRouteSummaryFromFirestore } from '../lib/getTaxiRouteSummaryFromFirestore';
 
+
+jest.mock('../lib/firebase', () => ({
+  auth: {
+    onAuthStateChanged: (cb) => {
+      cb({ email: 'driver@example.com' });
+      return jest.fn();
+    },
+  },
+}));
+
 jest.mock('../lib/firebase', () => {
   const listeners = [];
   const mockOnAuthStateChanged = jest.fn((cb) => {
