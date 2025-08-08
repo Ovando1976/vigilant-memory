@@ -127,5 +127,9 @@ yarn-debug.log*
 yarn-error.log*
 
 # Local development artifacts
-BROWSER=none
+
 codespaces-react@0.1.0
+
+/BROWSER=none
+/codespaces-react@0.1.0
+
