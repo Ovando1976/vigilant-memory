@@ -13,3 +13,10 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     </BrowserRouter>
   </React.StrictMode>
 );
+
+// Register service worker for Firebase Cloud Messaging
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker
+    .register('/firebase-messaging-sw.js')
+    .catch((err) => console.error('Service worker registration failed', err));
+}
