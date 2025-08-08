@@ -8,12 +8,13 @@ import {
   ListItem,
   ListItemText,
   Chip,
+  CircularProgress,
 } from "@mui/material";
 import { RideQueue } from "../components/driver/RideQueue";
 
 import logger from "../logger";
 
-import { db } from "../lib/firebase";
+import { db, auth } from "../lib/firebase";
 import {
   collection,
   query,
@@ -21,6 +22,7 @@ import {
   getDocs,
   doc,
   updateDoc,
+  getDoc,
 } from "firebase/firestore";
 
 
@@ -33,8 +35,31 @@ export default function DriverRidesPage() {
   const [pendingRides, setPendingRides] = useState([]);
   const [activeRides, setActiveRides] = useState([]);
   const [completedRides, setCompletedRides] = useState([]);
+  const [isAvailable, setIsAvailable] = useState(null);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
+    const unsub = auth.onAuthStateChanged(async (u) => {
+      setUser(u);
+      if (u) {
+        try {
+          const snap = await getDoc(doc(db, "drivers", u.uid));
+          setIsAvailable(snap.data()?.isAvailable ?? false);
+        } catch (err) {
+          setIsAvailable(false);
+        }
+      } else {
+        setIsAvailable(false);
+      }
+    });
+    return () => unsub();
+  }, []);
+
+  useEffect(() => {
+    if (!isAvailable) {
+      setPendingRides([]);
+      return;
+    }
     const fetchPending = async () => {
       const q = query(
         collection(db, "rideRequests"),
@@ -46,9 +71,13 @@ export default function DriverRidesPage() {
       );
     };
     fetchPending();
-  }, []);
+  }, [isAvailable]);
 
   useEffect(() => {
+    if (!isAvailable) {
+      setActiveRides([]);
+      return;
+    }
     const fetchActive = async () => {
       const q = query(
         collection(db, "rideRequests"),
@@ -60,9 +89,13 @@ export default function DriverRidesPage() {
       );
     };
     fetchActive();
-  }, []);
+  }, [isAvailable]);
 
   useEffect(() => {
+    if (!isAvailable) {
+      setCompletedRides([]);
+      return;
+    }
     const fetchCompleted = async () => {
       const q = query(
         collection(db, "rideRequests"),
@@ -74,12 +107,8 @@ export default function DriverRidesPage() {
       );
     };
     fetchCompleted();
-  }, []);
+  }, [isAvailable]);
 
-
-  const handleAccept = (rideId) => {
-    logger.info("Accept ride", rideId);
-    // Firestore update here
 
   const handleAccept = async (rideId) => {
     try {
@@ -96,8 +125,26 @@ export default function DriverRidesPage() {
     } catch (err) {
       console.error("Accept ride", err);
     }
-
   };
+
+  if (isAvailable === null) {
+    return (
+      <Box sx={{ p: 2, textAlign: "center" }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (!isAvailable) {
+    return (
+      <Box sx={{ p: 2 }}>
+        <Typography color="text.secondary">
+          You are currently offline. Enable availability in your profile to
+          receive ride requests.
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ p: { xs: 2, md: 3 } }}>

@@ -12,57 +12,82 @@ import {
   ListItem,
   ListItemText,
   CircularProgress,
+  TextField,
+  Button,
 } from "@mui/material";
+import { auth, db } from "../lib/firebase";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import logger from "../logger";
 
 export default function DriverProfilePage() {
+  const [user, setUser] = useState(null);
   const [driver, setDriver] = useState(null);
   const [rides, setRides] = useState([]);
   const [isAvailable, setIsAvailable] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate API call with mock data
-    setTimeout(() => {
-      const mockDriver = {
-        name: "Alex Thompson",
-        email: "alex@usvishuttle.com",
-        phone: "340-123-4567",
-        vehicleMake: "Hyundai",
-        vehicleModel: "Tucson",
-        plateNumber: "STT-9972",
-        isAvailable: true,
-      };
-
-      const mockRides = [
-        {
-          id: "ride1",
-          pickup: "Cyril E. King Airport",
-          dropoff: "Bolongo Bay",
-          fare: 12.0,
-          status: "completed",
-        },
-        {
-          id: "ride2",
-          pickup: "Charlotte Amalie",
-          dropoff: "Compass Point",
-          fare: 14.0,
-          status: "canceled",
-        },
-      ];
-
-      setDriver(mockDriver);
-      setRides(mockRides);
-      setIsAvailable(mockDriver.isAvailable);
-      setLoading(false);
-    }, 1000);
+    const unsub = auth.onAuthStateChanged((u) => setUser(u));
+    return () => unsub();
   }, []);
 
-  const handleAvailabilityToggle = (event) => {
+  useEffect(() => {
+    const fetchDriver = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const ref = doc(db, "drivers", user.uid);
+        const snap = await getDoc(ref);
+        if (snap.exists()) {
+          const data = snap.data();
+          setDriver(data);
+          setIsAvailable(data.isAvailable ?? false);
+        } else {
+          setDriver(null);
+        }
+      } catch (err) {
+        logger.error("Load driver profile", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDriver();
+  }, [user]);
+
+  const handleInputChange = (e) => {
+    setDriver({ ...driver, [e.target.name]: e.target.value });
+  };
+
+  const handleSave = async () => {
+    if (!user || !driver) return;
+    try {
+      const ref = doc(db, "drivers", user.uid);
+      await updateDoc(ref, {
+        name: driver.name || "",
+        phone: driver.phone || "",
+        vehicleMake: driver.vehicleMake || "",
+        vehicleModel: driver.vehicleModel || "",
+        plateNumber: driver.plateNumber || "",
+      });
+      logger.info("Driver profile updated");
+    } catch (err) {
+      logger.error("Save profile", err);
+    }
+  };
+
+  const handleAvailabilityToggle = async (event) => {
     const available = event.target.checked;
     setIsAvailable(available);
-    logger.info("Availability updated:", available);
-    // You can send this to an API here if needed
+    if (!user) return;
+    try {
+      const ref = doc(db, "drivers", user.uid);
+      await updateDoc(ref, { isAvailable: available });
+      logger.info("Availability updated:", available);
+    } catch (err) {
+      logger.error("Availability update failed", err);
+    }
   };
 
   if (loading) {
@@ -86,12 +111,34 @@ export default function DriverProfilePage() {
       <Paper elevation={3} sx={{ p: 3 }}>
         <Box display="flex" alignItems="center" mb={2}>
           <Avatar sx={{ width: 64, height: 64, mr: 2 }}>
-            {driver.name.charAt(0)}
+            {driver.name ? driver.name.charAt(0) : "?"}
           </Avatar>
-          <Box>
-            <Typography variant="h6">{driver.name}</Typography>
-            <Typography color="textSecondary">{driver.email}</Typography>
-            <Typography color="textSecondary">{driver.phone}</Typography>
+          <Box flexGrow={1}>
+            <TextField
+              label="Name"
+              name="name"
+              value={driver.name || ""}
+              onChange={handleInputChange}
+              fullWidth
+              margin="dense"
+            />
+            <TextField
+              label="Email"
+              name="email"
+              value={driver.email || ""}
+              onChange={handleInputChange}
+              fullWidth
+              margin="dense"
+              disabled
+            />
+            <TextField
+              label="Phone"
+              name="phone"
+              value={driver.phone || ""}
+              onChange={handleInputChange}
+              fullWidth
+              margin="dense"
+            />
           </Box>
         </Box>
 
@@ -100,14 +147,44 @@ export default function DriverProfilePage() {
         <Typography variant="subtitle1" gutterBottom>
           Vehicle Information
         </Typography>
-        <Typography>
-          {driver.vehicleMake} {driver.vehicleModel} ({driver.plateNumber})
-        </Typography>
+        <TextField
+          label="Make"
+          name="vehicleMake"
+          value={driver.vehicleMake || ""}
+          onChange={handleInputChange}
+          fullWidth
+          margin="dense"
+        />
+        <TextField
+          label="Model"
+          name="vehicleModel"
+          value={driver.vehicleModel || ""}
+          onChange={handleInputChange}
+          fullWidth
+          margin="dense"
+        />
+        <TextField
+          label="Plate Number"
+          name="plateNumber"
+          value={driver.plateNumber || ""}
+          onChange={handleInputChange}
+          fullWidth
+          margin="dense"
+        />
 
-        <Box display="flex" justifyContent="space-between" alignItems="center" mt={3}>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          mt={3}
+        >
           <Typography>Available for rides</Typography>
           <Switch checked={isAvailable} onChange={handleAvailabilityToggle} />
         </Box>
+
+        <Button variant="contained" sx={{ mt: 2 }} onClick={handleSave}>
+          Save Changes
+        </Button>
       </Paper>
 
       <Paper elevation={2} sx={{ mt: 4, p: 2 }}>
@@ -132,3 +209,4 @@ export default function DriverProfilePage() {
     </Box>
   );
 }
+
