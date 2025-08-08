@@ -1,38 +1,21 @@
 // src/pages/RideReviewPage.js
 import React, { useEffect, useState } from 'react';
-import {
-  Box,
-  Button,
-  Paper,
-  Typography,
-  Grid,
-} from '@mui/material';
+import { Box, Button, Paper, Typography, Grid } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import MyMapView from '../components/RoutePreviewMap';
-
-/* helper -------------------------------------------------------------- */
-function readRide(id) {
-  try {
-    return JSON.parse(localStorage.getItem('rideRequests') || '{}')[id] ?? null;
-  } catch {
-    return null; // corrupt JSON
-  }
-}
+import { subscribeToRide, updateRide } from '../lib/rideService';
 
 export default function RideReviewPage() {
   const { rideId } = useParams();
   const navigate   = useNavigate();
+  const { t } = useTranslation();
 
-  /* keep the ride in state so we can react to live storage updates */
-  const [ride, setRide] = useState(() => readRide(rideId));
+  const [ride, setRide] = useState(null);
 
-  /* listen for changes from other tabs or the driver dashboard */
   useEffect(() => {
-    const onStorage = (e) => {
-      if (e.key === 'rideRequests') setRide(readRide(rideId));
-    };
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
+    const unsubscribe = subscribeToRide(rideId, setRide);
+    return unsubscribe;
   }, [rideId]);
 
   /* early exit if the ride vanished (bad id, cleared storage, …) */
@@ -40,10 +23,10 @@ export default function RideReviewPage() {
     return (
       <Box p={4}>
         <Typography variant="h5" gutterBottom>
-          Ride not found
+          {t('rideNotFound')}
         </Typography>
         <Button variant="contained" onClick={() => navigate(-1)}>
-          Back
+          {t('back')}
         </Button>
       </Box>
     );
@@ -60,52 +43,44 @@ export default function RideReviewPage() {
   } = ride;
 
   /* confirm handler: mark status + jump to tracking page */
-  const handleConfirm = () => {
-  /* 1 – mark as confirmed in storage */
-  const storeRaw = localStorage.getItem('rideRequests') || '{}';
-  const store    = JSON.parse(storeRaw);
-  if (store[rideId]) {
-    store[rideId] = { ...store[rideId], status: 'confirmed' };
-    localStorage.setItem('rideRequests', JSON.stringify(store));
-  }
-
-  /* 2 – navigate to the confirmation page, passing the ride object */
-  navigate(
-    `/ridesharing/confirmed/${rideId}`,
-    { state: { ride: { ...store[rideId], id: rideId } }, replace: true }
-  );
-};
+  const handleConfirm = async () => {
+    await updateRide(rideId, { status: 'confirmed' });
+    navigate(
+      `/ridesharing/confirmed/${rideId}`,
+      { state: { ride: { ...ride, status: 'confirmed', id: rideId } }, replace: true }
+    );
+  };
 
   /* ─── render ────────────────────────────────────────────────────── */
   return (
     <Box p={{ xs: 2, md: 4 }}>
       <Paper sx={{ p: { xs: 3, md: 4 }, maxWidth: 720, mx: 'auto' }}>
         <Typography variant="h4" fontWeight="bold" gutterBottom>
-          Review Your Ride
+          {t('reviewYourRide')}
         </Typography>
 
         <Grid container spacing={2} mb={2}>
           <Grid item xs={6}>
             <Typography variant="subtitle2" color="text.secondary">
-              Pickup
+              {t('pickup')}
             </Typography>
             <Typography>{pickup}</Typography>
           </Grid>
           <Grid item xs={6}>
             <Typography variant="subtitle2" color="text.secondary">
-              Drop‑off
+              {t('dropoff')}
             </Typography>
             <Typography>{dropoff}</Typography>
           </Grid>
           <Grid item xs={6}>
             <Typography variant="subtitle2" color="text.secondary">
-              Estimated Fare
+              {t('estimatedFare')}
             </Typography>
             <Typography>${fare.toFixed(2)}</Typography>
           </Grid>
           <Grid item xs={6}>
             <Typography variant="subtitle2" color="text.secondary">
-              ETA
+              {t('eta')}
             </Typography>
             <Typography>{durationMin} min</Typography>
           </Grid>
@@ -122,12 +97,12 @@ export default function RideReviewPage() {
 
         <Box textAlign="right">
           <Button variant="outlined" sx={{ mr: 2 }} onClick={() => navigate(-1)}>
-            Cancel
+            {t('cancel')}
           </Button>
           <Button variant="contained" onClick={handleConfirm}>
-            Confirm Ride
+            {t('confirmRide')}
           </Button>
-        </Box>
+      </Box>
       </Paper>
     </Box>
   );
