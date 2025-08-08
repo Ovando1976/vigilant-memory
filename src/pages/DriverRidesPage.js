@@ -8,11 +8,25 @@ import {
   ListItem,
   ListItemText,
   Chip,
+  CircularProgress,
 } from "@mui/material";
 import { RideQueue } from "../components/driver/RideQueue";
 import logger from "../logger";
 
+
+import { db, auth } from "../lib/firebase";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  updateDoc,
+  getDoc,
+} from "firebase/firestore";
+
 import { subscribeToRidesByStatus, updateRide } from "../lib/rideService";
+
 
 
 
@@ -29,8 +43,80 @@ export default function DriverRidesPage() {
   const [pendingRides, setPendingRides] = useState([]);
   const [activeRides, setActiveRides] = useState([]);
   const [completedRides, setCompletedRides] = useState([]);
+  const [isAvailable, setIsAvailable] = useState(null);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
+    const unsub = auth.onAuthStateChanged(async (u) => {
+      setUser(u);
+      if (u) {
+        try {
+          const snap = await getDoc(doc(db, "drivers", u.uid));
+          setIsAvailable(snap.data()?.isAvailable ?? false);
+        } catch (err) {
+          setIsAvailable(false);
+        }
+      } else {
+        setIsAvailable(false);
+      }
+    });
+    return () => unsub();
+  }, []);
+
+  useEffect(() => {
+    if (!isAvailable) {
+      setPendingRides([]);
+      return;
+    }
+    const fetchPending = async () => {
+      const q = query(
+        collection(db, "rideRequests"),
+        where("status", "==", "pending")
+      );
+      const snapshot = await getDocs(q);
+      setPendingRides(
+        snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
+      );
+    };
+    fetchPending();
+  }, [isAvailable]);
+
+  useEffect(() => {
+    if (!isAvailable) {
+      setActiveRides([]);
+      return;
+    }
+    const fetchActive = async () => {
+      const q = query(
+        collection(db, "rideRequests"),
+        where("status", "in", ["accepted", "en-route"])
+      );
+      const snapshot = await getDocs(q);
+      setActiveRides(
+        snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
+      );
+    };
+    fetchActive();
+  }, [isAvailable]);
+
+  useEffect(() => {
+    if (!isAvailable) {
+      setCompletedRides([]);
+      return;
+    }
+    const fetchCompleted = async () => {
+      const q = query(
+        collection(db, "rideRequests"),
+        where("status", "==", "completed")
+      );
+      const snapshot = await getDocs(q);
+      setCompletedRides(
+        snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
+      );
+    };
+    fetchCompleted();
+  }, [isAvailable]);
+
 
     const fetchRides = async () => {
       try {
@@ -81,8 +167,8 @@ export default function DriverRidesPage() {
     return unsub;
   }, []);
 
-  const { pendingRides, activeRides, completedRides, loading } = useDriverRides();
 
+  const { pendingRides, activeRides, completedRides, loading } = useDriverRides();
 
 
   const handleAccept = async (rideId) => {
@@ -97,6 +183,25 @@ export default function DriverRidesPage() {
       console.error("Accept ride", err);
     }
   };
+
+  if (isAvailable === null) {
+    return (
+      <Box sx={{ p: 2, textAlign: "center" }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (!isAvailable) {
+    return (
+      <Box sx={{ p: 2 }}>
+        <Typography color="text.secondary">
+          You are currently offline. Enable availability in your profile to
+          receive ride requests.
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ p: { xs: 2, md: 3 } }}>
