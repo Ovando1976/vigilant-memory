@@ -4,16 +4,34 @@ import { FaCar } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import MyMapView from '../components/RoutePreviewMap';
-import { subscribeToRide } from '../lib/rideService';
+
+/**
+ * Reads a single ride object from localStorage, returns `null` if missing.
+ */
+function getRideById(id) {
+  try {
+    const store = JSON.parse(localStorage.getItem('rideRequests') || '{}');
+    return store[id] ?? null;
+  } catch {
+    /* corrupt or empty storage */
+    return null;
+  }
+}
 
 export default function RideTrackingPage() {
   const { t } = useTranslation();
   const { rideId } = useParams();              // ← /ridesharing/track/:rideId
-  const [ride, setRide] = useState(null);
+  const [ride, setRide] = useState(() => getRideById(rideId));
 
+  /* listen for live updates from other tabs or the driver dashboard */
   useEffect(() => {
-    const unsubscribe = subscribeToRide(rideId, setRide);
-    return unsubscribe;
+    function handleStorage(e) {
+      if (e.key === 'rideRequests') {
+        setRide(getRideById(rideId));
+      }
+    }
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
   }, [rideId]);
 
   /* if nothing was found show a friendly message */
@@ -42,6 +60,7 @@ export default function RideTrackingPage() {
     dropoffCoords,
     fare,
     durationMin,
+    status = 'requested',
   } = ride;
 
   return (
@@ -69,11 +88,21 @@ export default function RideTrackingPage() {
         </p>
         <p className="mb-4">🚦 {t('Status')}: {status}</p>
 
+        {driverId && (
+          <button
+            onClick={() => alert('🚧 Chat with driver coming soon!')}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white font-semibold rounded shadow hover:bg-blue-700"
+          >
+            💬 Contact Driver
+          </button>
+        )}
+
         {pickupCoords && dropoffCoords ? (
-          <div className="h-[300px] w-full rounded shadow overflow-hidden">
+          <div className="h-[300px] w-full rounded shadow overflow-hidden mt-4">
             <MyMapView
               pickupCoords={pickupCoords}
               dropoffCoords={dropoffCoords}
+              driverCoords={driverCoords}
               height={300}
             />
           </div>
@@ -81,6 +110,26 @@ export default function RideTrackingPage() {
           <p className="text-red-600 font-medium mt-4">
             {t('Unable to display route map.')}
           </p>
+        )}
+
+        {status === 'completed' && !feedbackSubmitted && (
+          <div className="fixed bottom-6 inset-x-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-xl">
+            <p className="text-lg mb-2">Rate your ride:</p>
+            <div className="flex space-x-2">
+              <button
+                className="text-2xl"
+                onClick={() => sendRating(5)}
+              >
+                👍
+              </button>
+              <button
+                className="text-2xl"
+                onClick={() => sendRating(1)}
+              >
+                👎
+              </button>
+            </div>
+          </div>
         )}
       </main>
     </>
