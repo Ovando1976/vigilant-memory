@@ -36,6 +36,7 @@ import SignInPage from "./pages/SignInPage";
 import SignUpPage from "./pages/SignUpPage";
 import PrivateRoute from "./components/PrivateRoute";
 import { SnackbarProvider } from "./components/SnackbarProvider";
+import ChatPage from "./pages/ChatPage";
 
 
 /* ─────── themes ─────── */
@@ -125,6 +126,7 @@ function AppShell() {
         {/* Misc */}
         <Route path="/profile/rides" element={<PrivateRoute><UserRideHistory /></PrivateRoute>} />
         <Route path="/test-map" element={<TestMap />} />
+        <Route path="/chat" element={<ChatPage />} />
 
         {/* 404 */}
         <Route
