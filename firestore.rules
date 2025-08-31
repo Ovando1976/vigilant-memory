@@ -3,111 +3,137 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper Functions
-    // ------------------------------------------------------------------
-    // Determines if the request is authenticated.
-    function isSignedIn() {
-      return request.auth != null;
+    /* ───────── helpers ───────── */
+    function isSignedIn() { return request.auth != null; }
+    function isAdmin() { return isSignedIn() && request.auth.token.role == 'admin'; }
+
+    function isOwner(doc) { return isSignedIn() && doc.data.ownerId == request.auth.uid; }
+    function willBeOwner() { return isSignedIn() && request.resource.data.ownerId == request.auth.uid; }
+
+    function isRegisteredDriver() {
+      return isSignedIn() && exists(/databases/$(database)/documents/drivers/$(request.auth.uid));
+    }
+    function isActiveDriver() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/drivers/$(request.auth.uid))
+        && get(/databases/$(database)/documents/drivers/$(request.auth.uid)).data.active == true;
     }
 
-    // Checks whether the user has the `admin` role via custom auth claims.
-    // Example: set { role: 'admin' } in Firebase Authentication custom claims.
-    function isAdmin() {
-      return request.auth != null && request.auth.token.role == 'admin';
+    // immutable ride fields after create
+    function coreFieldsUnchanged() {
+      return request.resource.data.ownerId       == resource.data.ownerId
+          && request.resource.data.amountCents   == resource.data.amountCents
+          && request.resource.data.fare          == resource.data.fare
+          && request.resource.data.pickup        == resource.data.pickup
+          && request.resource.data.dropoff       == resource.data.dropoff
+          && request.resource.data.pickupCoords  == resource.data.pickupCoords
+          && request.resource.data.dropoffCoords == resource.data.dropoffCoords
+          && request.resource.data.passengerCount== resource.data.passengerCount
+          && request.resource.data.scheduledAt   == resource.data.scheduledAt;
     }
-    
-    // 🔐 User Profiles
-    // Only the authenticated user may read or modify their own profile document.
-    // Admins (users with `role == 'admin'` in their auth token) may manage any profile.
+
+    function allowedStatusChangeByOwner() {
+      return resource.data.driverId == null
+          && request.resource.data.status in ['pending','canceled','cancelled'];
+    }
+
+    function allowedStatusChangeByDriver() {
+      return request.auth.uid == resource.data.driverId
+          && request.resource.data.status in ['accepted','en-route','in_progress','completed','canceled','cancelled'];
+    }
+
+    function isValidAccept() {
+      return resource.data.status == 'pending'
+          && resource.data.driverId == null
+          && request.resource.data.status == 'accepted'
+          && request.resource.data.driverId == request.auth.uid;
+    }
+
+    /* ───────── public, read-only collections ───────── */
+    match /taxiRates/{rateId} { allow read: if true; allow create, update, delete: if isAdmin(); }
+    match /locations/{locId}  { allow read: if true; allow create, update, delete: if isAdmin(); }
+
+    /* (optional) if you want Home to work before auth */
+    match /events/{eventId}   { allow read: if true;  allow create, update, delete: if isAdmin(); }
+    match /beaches/{beachId}  { allow read: if true;  allow create, update, delete: if isAdmin(); }
+
+    /* ───────── drivers/users/etc. (unchanged) ───────── */
     match /users/{userId} {
-      allow read, write: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow read, update, delete: if isSignedIn() && (request.auth.uid == userId || isAdmin());
     }
-    
-    // 💬 Chat Messages: Allow any authenticated user to read/write messages.
-    match /chats/{chatId}/messages/{messageId} {
-      allow read, write: if request.auth != null;
+
+    match /drivers/{uid} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.auth.uid == uid && !('active' in request.resource.data);
+      allow update: if isSignedIn() && request.auth.uid == uid && request.resource.data.active == resource.data.active;
+      allow update, delete: if isAdmin();
     }
-    
-    // 🛑 Admin Panel: For temporary testing, allow any authenticated user.
-    match /admin/{doc} {
-      allow read, write: if request.auth != null;
+
+    /* ───────── rideRequests (USED BY APP) ───────── */
+    match /rideRequests/{rideId} {
+
+      // Clients must not set price on create
+      function noClientFareOnCreate() {
+        return !('fare' in request.resource.data) && !('amountCents' in request.resource.data);
+      }
+
+      // CREATE: rider creates pending ride; driverId must be null/absent
+      allow create: if willBeOwner()
+        && request.resource.data.status == 'pending'
+        && (!('driverId' in request.resource.data) || request.resource.data.driverId == null)
+        && request.resource.data.pickup is string
+        && request.resource.data.dropoff is string
+        && request.resource.data.passengerCount is number
+        && (!('scheduledAt' in request.resource.data) || request.resource.data.scheduledAt is timestamp)
+        && request.resource.data.pickupCoords is map
+        && request.resource.data.pickupCoords.lat is number
+        && request.resource.data.pickupCoords.lng is number
+        && request.resource.data.dropoffCoords is map
+        && request.resource.data.dropoffCoords.lat is number
+        && request.resource.data.dropoffCoords.lng is number
+        && noClientFareOnCreate();
+
+      // READ: owner, assigned driver, admin; active drivers can browse 'pending'
+      allow read: if isSignedIn() && (
+        resource.data.ownerId == request.auth.uid ||
+        resource.data.driverId == request.auth.uid ||
+        isAdmin() ||
+        (isActiveDriver() && resource.data.status == 'pending')
+      );
+
+      // UPDATE
+      allow update: if
+        isAdmin()
+        || (isRegisteredDriver() && isValidAccept() && coreFieldsUnchanged()
+            && request.resource.data.diff(resource.data).changedKeys().hasOnly(['status','driverId','updatedAt']))
+        || (isRegisteredDriver() && allowedStatusChangeByDriver() && coreFieldsUnchanged()
+            && request.resource.data.driverId == resource.data.driverId
+            && request.resource.data.diff(resource.data).changedKeys().hasOnly(['status','updatedAt']))
+        || (isOwner(resource) && allowedStatusChangeByOwner() && coreFieldsUnchanged()
+            && request.resource.data.driverId == resource.data.driverId
+            && request.resource.data.diff(resource.data).changedKeys().hasOnly(['status','rating','feedbackTime','updatedAt']));
+
+      // DELETE: owner or admin
+      allow delete: if isOwner(resource) || isAdmin();
+
+      /* ---- breadcrumbs subcollection ---- */
+      match /breadcrumbs/{pointId} {
+        allow read: if isAdmin()
+          || (get(/databases/$(database)/documents/rideRequests/$(rideId)).data.ownerId == request.auth.uid)
+          || (get(/databases/$(database)/documents/rideRequests/$(rideId)).data.driverId == request.auth.uid);
+
+        allow create: if isAdmin()
+          || (isSignedIn()
+              && get(/databases/$(database)/documents/rideRequests/$(rideId)).data.driverId == request.auth.uid
+              && request.resource.data.expiresAt is timestamp);
+
+        allow update: if false;
+        allow delete: if isAdmin();
+      }
     }
-    
-    // 📢 Blog Posts: Allow creation, update and deletion if the user is authenticated.
-    match /blogPosts/{postId} {
-      allow read, write: if request.auth != null;
-    }
-    
-    // 🎟️ Event Posts: Allow any authenticated user to create and modify events.
-    match /events/{eventId} {
-      allow read, write: if request.auth != null;
-    }
-    
-    // 🚘 VIBER - Ride Booking System
-    // Each ride document must contain an `ownerId` field representing the user who created the ride.
-    // Only the ride owner or an admin can view or modify the ride.
-    // Example document:
-    //   {
-    //     ownerId: "uid123",
-    //     from: "A",
-    //     to: "B"
-    //   }
-    match /rides/{rideId} {
-      allow read, write: if isSignedIn() && (request.auth.uid == resource.data.ownerId || isAdmin());
-    }
-    
-    // 🚖 Drivers
-    // Driver documents should include a `userId` field linking the driver to their auth UID.
-    // Only that user or an admin can access or modify the driver record.
-    match /drivers/{driverId} {
-      allow read, write: if isSignedIn() && (request.auth.uid == resource.data.userId || isAdmin());
-    }
-    
-    // 💵 Payments
-    // Payment documents must store an `ownerId` identifying who made the payment.
-    // Access is restricted to that user or an admin.
-    match /payments/{paymentId} {
-      allow read, write: if isSignedIn() && (request.auth.uid == resource.data.ownerId || isAdmin());
-    }
-    
-    // 📌 Notifications: Allow any authenticated user to read and create notifications.
-    match /notifications/{notificationId} {
-      allow read, write: if request.auth != null;
-    }
-    
-    // 🎯 Groups: 
-    // Schema: 
-    //   - name: string
-    //   - description: string
-    //   - memberCount: number
-    //   - image: string
-    //   - createdBy: string (User ID)
-    match /groups/{groupId} {
-      allow read, write: if request.auth != null;
-    }
-    
-    // 🎯 Group Members:
-    // Schema:
-    //   - joinedAt: timestamp
-    //   - role: "member" | "admin"
-    // Users can read group membership data and write to their own membership document.
-    match /groupMembers/{groupId}/{userId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && request.auth.uid == userId;
-    }
-    
-    // 🎥 Video Rooms:
-    // Schema:
-    //   - active: boolean
-    //   - host: string (User ID)
-    //   - participants: array of userIds
-    match /videoRooms/{groupId} {
-      allow read, write: if request.auth != null;
-    }
-    
-    // ⛔ Default: Deny everything else.
-    match /{document=**} {
-      allow read, write: if false;
-    }
+
+    /* ───────── everything else denied ───────── */
+    match /{document=**} { allow read, write: if false; }
   }
 }

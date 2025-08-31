@@ -22,7 +22,7 @@ import logger from "../logger";
 export default function DriverProfilePage() {
   const [user, setUser] = useState(null);
   const [driver, setDriver] = useState(null);
-  const [rides, setRides] = useState([]);
+  const [rides] = useState([]);
   const [isAvailable, setIsAvailable] = useState(false);
   const [loading, setLoading] = useState(true);
 

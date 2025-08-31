@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Tabs,
@@ -13,7 +13,6 @@ import {
 import { RideQueue } from "../components/driver/RideQueue";
 import logger from "../logger";
 
-
 import { db, auth } from "../lib/firebase";
 import {
   collection,
@@ -25,27 +24,18 @@ import {
   getDoc,
 } from "firebase/firestore";
 
-import { subscribeToRidesByStatus, updateRide } from "../lib/rideService";
+// If you want realtime later, reintroduce subscribeToRidesByStatus carefully
+// import { subscribeToRidesByStatus, updateRide } from "../lib/rideService";
 
-
-
-
-import { db } from "../lib/firebase";
-import { doc, updateDoc } from "firebase/firestore";
-import useDriverRides from "../hooks/useDriverRides";
-
-/**
- * Rides page – pending, active, completed.
- */
 export default function DriverRidesPage() {
   const [tab, setTab] = useState(0);
-
   const [pendingRides, setPendingRides] = useState([]);
   const [activeRides, setActiveRides] = useState([]);
   const [completedRides, setCompletedRides] = useState([]);
   const [isAvailable, setIsAvailable] = useState(null);
   const [user, setUser] = useState(null);
 
+  // Auth + availability
   useEffect(() => {
     const unsub = auth.onAuthStateChanged(async (u) => {
       setUser(u);
@@ -54,6 +44,7 @@ export default function DriverRidesPage() {
           const snap = await getDoc(doc(db, "drivers", u.uid));
           setIsAvailable(snap.data()?.isAvailable ?? false);
         } catch (err) {
+          logger.error("load availability", err);
           setIsAvailable(false);
         }
       } else {
@@ -63,124 +54,53 @@ export default function DriverRidesPage() {
     return () => unsub();
   }, []);
 
+  // Fetch lists (simple polling-once; can refactor to realtime later)
   useEffect(() => {
     if (!isAvailable) {
       setPendingRides([]);
-      return;
-    }
-    const fetchPending = async () => {
-      const q = query(
-        collection(db, "rideRequests"),
-        where("status", "==", "pending")
-      );
-      const snapshot = await getDocs(q);
-      setPendingRides(
-        snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
-      );
-    };
-    fetchPending();
-  }, [isAvailable]);
-
-  useEffect(() => {
-    if (!isAvailable) {
       setActiveRides([]);
-      return;
-    }
-    const fetchActive = async () => {
-      const q = query(
-        collection(db, "rideRequests"),
-        where("status", "in", ["accepted", "en-route"])
-      );
-      const snapshot = await getDocs(q);
-      setActiveRides(
-        snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
-      );
-    };
-    fetchActive();
-  }, [isAvailable]);
-
-  useEffect(() => {
-    if (!isAvailable) {
       setCompletedRides([]);
       return;
     }
-    const fetchCompleted = async () => {
-      const q = query(
-        collection(db, "rideRequests"),
-        where("status", "==", "completed")
-      );
-      const snapshot = await getDocs(q);
-      setCompletedRides(
-        snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
-      );
-    };
-    fetchCompleted();
-  }, [isAvailable]);
 
-
-    const fetchRides = async () => {
+    const fetchAll = async () => {
       try {
         const q = query(
           collection(db, "rideRequests"),
           where("status", "in", ["pending", "accepted", "en-route", "completed"])
         );
-        const snapshot = await getDocs(q);
+        const snap = await getDocs(q);
 
-        const pending = [];
-        const active = [];
-        const completed = [];
+        const pend = [];
+        const act = [];
+        const comp = [];
 
-        snapshot.forEach((docSnap) => {
+        snap.forEach((docSnap) => {
           const ride = { id: docSnap.id, ...docSnap.data() };
-          if (ride.status === "pending") {
-            pending.push(ride);
-          } else if (ride.status === "accepted" || ride.status === "en-route") {
-            active.push(ride);
-          } else if (ride.status === "completed") {
-            completed.push(ride);
-          }
+          if (ride.status === "pending") pend.push(ride);
+          else if (ride.status === "accepted" || ride.status === "en-route") act.push(ride);
+          else if (ride.status === "completed") comp.push(ride);
         });
 
-        setPendingRides(pending);
-        setActiveRides(active);
-        setCompletedRides(completed);
-      } catch (err) {
-        logger.error("Fetch rides", err);
+        setPendingRides(pend);
+        setActiveRides(act);
+        setCompletedRides(comp);
+      } catch (e) {
+        logger.error("fetch rides", e);
       }
     };
 
-    fetchRides();
-  }, []);
-
-
-    const unsub = subscribeToRidesByStatus("confirmed", setPendingRides);
-    return unsub;
-  }, []);
-
-  useEffect(() => {
-    const unsub = subscribeToRidesByStatus(["accepted", "en-route"], setActiveRides);
-    return unsub;
-  }, []);
-
-  useEffect(() => {
-    const unsub = subscribeToRidesByStatus("completed", setCompletedRides);
-    return unsub;
-  }, []);
-
-
-  const { pendingRides, activeRides, completedRides, loading } = useDriverRides();
-
+    fetchAll();
+  }, [isAvailable]);
 
   const handleAccept = async (rideId) => {
-    logger.info("Accept ride", rideId);
     try {
-
-      await updateRide(rideId, { status: "accepted" });
-      logger.info("Accept ride", rideId);
       const ref = doc(db, "rideRequests", rideId);
-      await updateDoc(ref, { status: "accepted" });
+      await updateDoc(ref, { status: "accepted", driverId: user?.uid || null });
+      // Optional: optimistic UI
+      setPendingRides((prev) => prev.filter((r) => r.id !== rideId));
     } catch (err) {
-      console.error("Accept ride", err);
+      logger.error("accept ride", err);
     }
   };
 
@@ -209,50 +129,36 @@ export default function DriverRidesPage() {
         My Rides
       </Typography>
 
-      {loading ? (
-        <Typography color="text.secondary">Loading rides...</Typography>
-      ) : (
-        <>
-          <Tabs
-            value={tab}
-            onChange={(_, v) => setTab(v)}
-            sx={{ mb: 2 }}
-            textColor="primary"
-            indicatorColor="primary"
-          >
-            <Tab label={`Pending (${pendingRides.length})`} />
-            <Tab label={`Active (${activeRides.length})`} />
-            <Tab label={`Completed (${completedRides.length})`} />
-          </Tabs>
+      <Tabs
+        value={tab}
+        onChange={(_, v) => setTab(v)}
+        sx={{ mb: 2 }}
+        textColor="primary"
+        indicatorColor="primary"
+      >
+        <Tab label={`Pending (${pendingRides.length})`} />
+        <Tab label={`Active (${activeRides.length})`} />
+        <Tab label={`Completed (${completedRides.length})`} />
+      </Tabs>
 
-          {tab === 0 && (
-            <RideQueue rides={pendingRides} onAccept={handleAccept} dense />
+      {tab === 0 && (
+        <RideQueue rides={pendingRides} onAccept={handleAccept} dense />
+      )}
+
+      {tab === 1 && (
+        <List dense disablePadding>
+          {activeRides.length === 0 && (
+            <Typography color="text.secondary">No active rides.</Typography>
           )}
-
-          {tab === 1 && (
-            <List dense disablePadding>
-              {activeRides.length === 0 && (
-                <Typography color="text.secondary">No active rides.</Typography>
-              )}
-              {activeRides.map((r) => (
-                <ListItem key={r.id}>
-                  <ListItemText
-                    primary={`${r.pickupLabel} ➜ ${r.dropoffLabel}`}
-                    secondary={`Started ${new Date(
-                      r.startedAt
-                    ).toLocaleTimeString()}`}
-                  />
-                  <Chip label={r.status} color="warning" size="small" />
-                </ListItem>
-              ))}
-            </List>
-          )}
-
           {activeRides.map((r) => (
             <ListItem key={r.id}>
               <ListItemText
-                primary={`${r.pickup} ➜ ${r.dropoff}`}
-                secondary={`Passengers: ${r.passengerCount || 1}`}
+                primary={`${r.pickup || r.pickupLabel} ➜ ${r.dropoff || r.dropoffLabel}`}
+                secondary={
+                  r.startedAt
+                    ? `Started ${new Date(r.startedAt).toLocaleTimeString()}`
+                    : `Passengers: ${r.passengerCount || 1}`
+                }
               />
               <Chip label={r.status} color="warning" size="small" />
             </ListItem>
@@ -260,47 +166,21 @@ export default function DriverRidesPage() {
         </List>
       )}
 
-
       {tab === 2 && (
         <List dense disablePadding>
           {completedRides.length === 0 && (
-            <Typography color="text.secondary">
-              No completed rides yet.
-            </Typography>
-
-
-          {tab === 2 && (
-            <List dense disablePadding>
-              {completedRides.length === 0 && (
-                <Typography color="text.secondary">
-                  No completed rides yet.
-                </Typography>
-              )}
-              {completedRides.map((r) => (
-                <ListItem key={r.id}>
-                  <ListItemText
-                    primary={`${r.pickupLabel} ➜ ${r.dropoffLabel}`}
-                    secondary={`Fare $${r.fare.toFixed(2)}`}
-                  />
-                  <Chip label="Done" color="success" size="small" />
-                </ListItem>
-              ))}
-            </List>
-
+            <Typography color="text.secondary">No completed rides yet.</Typography>
           )}
-
           {completedRides.map((r) => (
             <ListItem key={r.id}>
               <ListItemText
-                primary={`${r.pickup} ➜ ${r.dropoff}`}
-                secondary={`Fare $${r.fare?.toFixed(2) || 0}`}
+                primary={`${r.pickup || r.pickupLabel} ➜ ${r.dropoff || r.dropoffLabel}`}
+                secondary={`Fare $${Number(r.fare || 0).toFixed(2)}`}
               />
               <Chip label="Done" color="success" size="small" />
             </ListItem>
           ))}
         </List>
-        </>
-
       )}
     </Box>
   );

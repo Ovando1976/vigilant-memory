@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import {
   Box,
-  Container,
   Drawer,
   IconButton,
   Badge,
@@ -178,9 +177,6 @@ export default function DriverDashboard() {
 
               onClick={() => alert(t("earningsComingSoon"))}
               aria-label={t("earnings")}
-
-              onClick={() => setEarningsOpen(true)}
-              aria-label="Earnings"
 
             >
               <MonetizationOnIcon />

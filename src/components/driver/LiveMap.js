@@ -60,7 +60,7 @@ export default function LiveMap({
     if (Array.isArray(routePolyline)) return routePolyline;
     // encoded string
     return decodePolyline(routePolyline);
-  }, [routePolyline, isLoaded]);
+  }, [routePolyline]);
 
   /* ----- fit bounds when inputs change ----- */
   useEffect(() => {

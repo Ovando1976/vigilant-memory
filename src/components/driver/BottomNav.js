@@ -1,7 +1,5 @@
 import React from "react";
 
-import { FaUsers, FaCog } from "react-icons/fa";
-
 import { FaUsers, FaDollarSign, FaCog } from "react-icons/fa";
 import { NavLink } from "react-router-dom";
 

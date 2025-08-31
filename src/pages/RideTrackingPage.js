@@ -5,36 +5,30 @@ import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import MyMapView from '../components/RoutePreviewMap';
 
-/**
- * Reads a single ride object from localStorage, returns `null` if missing.
- */
+/** Reads a single ride object from localStorage, returns `null` if missing. */
 function getRideById(id) {
   try {
     const store = JSON.parse(localStorage.getItem('rideRequests') || '{}');
     return store[id] ?? null;
   } catch {
-    /* corrupt or empty storage */
     return null;
   }
 }
 
 export default function RideTrackingPage() {
   const { t } = useTranslation();
-  const { rideId } = useParams();              // ← /ridesharing/track/:rideId
+  const { rideId } = useParams(); // /ridesharing/track/:rideId
   const [ride, setRide] = useState(() => getRideById(rideId));
 
-  /* listen for live updates from other tabs or the driver dashboard */
+  // Keep state in sync if another tab updates localStorage
   useEffect(() => {
     function handleStorage(e) {
-      if (e.key === 'rideRequests') {
-        setRide(getRideById(rideId));
-      }
+      if (e.key === 'rideRequests') setRide(getRideById(rideId));
     }
     window.addEventListener('storage', handleStorage);
     return () => window.removeEventListener('storage', handleStorage);
   }, [rideId]);
 
-  /* if nothing was found show a friendly message */
   if (!ride) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
@@ -43,7 +37,19 @@ export default function RideTrackingPage() {
     );
   }
 
-  const { status = 'requested' } = ride;
+  // Destructure once, then use
+  const {
+    pickup,
+    dropoff,
+    pickupCoords,
+    dropoffCoords,
+    fare,
+    durationMin,
+    status = 'requested',
+    driverId = null,
+    driverCoords = null,
+    feedbackSubmitted = false,
+  } = ride;
 
   if (status === 'cancelled') {
     return (
@@ -53,20 +59,24 @@ export default function RideTrackingPage() {
     );
   }
 
-  const {
-    pickup,
-    dropoff,
-    pickupCoords,
-    dropoffCoords,
-    fare,
-    durationMin,
-    status = 'requested',
-  } = ride;
+  // Simple rating handler that persists back to localStorage
+  const sendRating = (score) => {
+    try {
+      const store = JSON.parse(localStorage.getItem('rideRequests') || '{}');
+      const current = store[rideId] || {};
+      const updated = { ...current, feedbackSubmitted: true, rating: score };
+      store[rideId] = updated;
+      localStorage.setItem('rideRequests', JSON.stringify(store));
+      setRide(updated);
+    } catch {
+      // ignore
+    }
+  };
 
   return (
     <>
       <Helmet>
-        <title>{t('Track Ride')} | USVI Explorer</title>
+        <title>{t('Track Ride')} | USVI Explorer</title>
       </Helmet>
 
       <main className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white px-4 py-6">
@@ -79,12 +89,10 @@ export default function RideTrackingPage() {
         </p>
 
         <p className="mb-1">
-          ⏱️ ETA:{' '}
-          {typeof durationMin === 'number' ? `${durationMin} min` : t('Unknown')}
+          ⏱️ ETA: {typeof durationMin === 'number' ? `${durationMin} min` : t('Unknown')}
         </p>
         <p className="mb-1">
-          💰 {t('Estimated Fare')}:&nbsp;
-          {typeof fare === 'number' ? `$${fare.toFixed(2)}` : '–'}
+          💰 {t('Estimated Fare')}: {typeof fare === 'number' ? `$${fare.toFixed(2)}` : '–'}
         </p>
         <p className="mb-4">🚦 {t('Status')}: {status}</p>
 
@@ -102,7 +110,7 @@ export default function RideTrackingPage() {
             <MyMapView
               pickupCoords={pickupCoords}
               dropoffCoords={dropoffCoords}
-              driverCoords={driverCoords}
+              driverCoords={driverCoords || undefined}
               height={300}
             />
           </div>
@@ -116,18 +124,8 @@ export default function RideTrackingPage() {
           <div className="fixed bottom-6 inset-x-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-xl">
             <p className="text-lg mb-2">Rate your ride:</p>
             <div className="flex space-x-2">
-              <button
-                className="text-2xl"
-                onClick={() => sendRating(5)}
-              >
-                👍
-              </button>
-              <button
-                className="text-2xl"
-                onClick={() => sendRating(1)}
-              >
-                👎
-              </button>
+              <button className="text-2xl" onClick={() => sendRating(5)}>👍</button>
+              <button className="text-2xl" onClick={() => sendRating(1)}>👎</button>
             </div>
           </div>
         )}
