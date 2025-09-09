@@ -4,9 +4,10 @@
   "private": true,
   "proxy": "http://localhost:5001",
   "scripts": {
-    "start": "concurrently \"npm run start:api\" \"npm run start:web\"",
-    "start:web": "BROWSER=none WDS_SOCKET_PORT=0 react-scripts start",
+    "dev": "npm run start:web",
+    "start:web": "DANGEROUSLY_DISABLE_HOST_CHECK=true BROWSER=none WDS_SOCKET_PORT=0 react-scripts start",
     "start:api": "nodemon --signal SIGTERM server.js",
+    "start": "npm run start:web",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
