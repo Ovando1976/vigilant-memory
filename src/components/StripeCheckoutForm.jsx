@@ -1,6 +1,11 @@
 import React from "react";
 import {
-  Alert, Box, Button, Stack, Typography, LinearProgress
+  Alert,
+  Box,
+  Button,
+  Stack,
+  Typography,
+  LinearProgress,
 } from "@mui/material";
 import {
   PaymentElement,
@@ -10,6 +15,9 @@ import {
   useElements,
   PaymentRequestButtonElement,
 } from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
+
+const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
 
 export default function CheckoutForm({ amount, currency, label }) {
   const stripe = useStripe();
@@ -71,7 +79,13 @@ export default function CheckoutForm({ amount, currency, label }) {
           <Box sx={{ mb: 1 }}>
             <PaymentRequestButtonElement
               options={{ paymentRequest }}
-              style={{ paymentRequestButton: { type: "default", theme: "dark", height: "44px" } }}
+              style={{
+                paymentRequestButton: {
+                  type: "default",
+                  theme: "dark",
+                  height: "44px",
+                },
+              }}
             />
             <Typography variant="caption" color="text.secondary">
               Fast checkout with Apple Pay or Google Pay
@@ -86,7 +100,11 @@ export default function CheckoutForm({ amount, currency, label }) {
 
         {/* Optional address capture (remove if not needed) */}
         <AddressElement
-          options={{ mode: "billing", fields: { phone: "optional" }, validation: { phone: "auto" } }}
+          options={{
+            mode: "billing",
+            fields: { phone: "optional" },
+            validation: { phone: "auto" },
+          }}
         />
 
         <PaymentElement options={{ layout: "tabs" }} />
@@ -99,10 +117,12 @@ export default function CheckoutForm({ amount, currency, label }) {
           size="large"
           disabled={!stripe || !elements || loading}
         >
-          {loading ? "Processing…" : `Pay ${(amount / 100).toLocaleString(undefined, {
-            style: "currency",
-            currency
-          })}`}
+          {loading
+            ? "Processing…"
+            : `Pay ${(amount / 100).toLocaleString(undefined, {
+                style: "currency",
+                currency,
+              })}`}
         </Button>
 
         {loading && <LinearProgress />}

@@ -1,5 +1,11 @@
 // src/pages/HomePage.js
-import React, { useMemo, useState, useEffect, useRef, useCallback } from "react";
+import React, {
+  useMemo,
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+} from "react";
 import {
   AppBar,
   Toolbar,
@@ -74,7 +80,8 @@ function computeFareLocal({ pickup, dropoff, pax }) {
   const dLng = toRad(b.lng - a.lng);
   const s1 = Math.sin(dLat / 2);
   const s2 = Math.sin(dLng / 2);
-  const aa = s1 * s1 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * s2 * s2;
+  const aa =
+    s1 * s1 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * s2 * s2;
   const km = 2 * R * Math.asin(Math.sqrt(aa));
 
   const base = 10; // base per party
@@ -97,7 +104,8 @@ function haversineKm(a, b) {
   const dLng = toRad(b.lng - a.lng);
   const s1 = Math.sin(dLat / 2);
   const s2 = Math.sin(dLng / 2);
-  const aa = s1 * s1 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * s2 * s2;
+  const aa =
+    s1 * s1 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * s2 * s2;
   return 2 * R * Math.asin(Math.sqrt(aa));
 }
 function islandOf({ lat, lng }) {
@@ -121,7 +129,10 @@ function localResolveRoute(pickup, dropoff) {
   }
   const dKm = haversineKm(from, to);
   const durationMin = Math.max(8, Math.round((dKm / 28) * 60));
-  const routeId = `${pickup}__${dropoff}`.toLowerCase().replace(/\W+/g, "_").slice(0, 80);
+  const routeId = `${pickup}__${dropoff}`
+    .toLowerCase()
+    .replace(/\W+/g, "_")
+    .slice(0, 80);
 
   return {
     from: { name: pickup, lat: from.lat, lng: from.lng },
@@ -144,7 +155,11 @@ function HideOnScroll({ children }) {
 
 // ---------- NEW: island helpers ----------
 const toCodeQuick = (v) => {
-  const s = String(v || "").trim().toUpperCase().replace(/\./g, "").replace(/\s+/g, " ");
+  const s = String(v || "")
+    .trim()
+    .toUpperCase()
+    .replace(/\./g, "")
+    .replace(/\s+/g, " ");
   if (["STT", "STJ", "STX"].includes(s)) return s;
   if (s === "ST THOMAS") return "STT";
   if (s === "ST JOHN") return "STJ";
@@ -201,16 +216,20 @@ export default function HomePage() {
     const candidates = islandLocations;
     if (!candidates.length) return;
     if (pickup && !sameIsland(pickup, island)) {
-      const next = candidates.includes("Charlotte Amalie") ? "Charlotte Amalie" : candidates[0];
+      const next = candidates.includes("Charlotte Amalie")
+        ? "Charlotte Amalie"
+        : candidates[0];
       setPickup(next);
     }
     if (dropoff && !sameIsland(dropoff, island)) {
-      const next = candidates.includes("Cyril E. King Airport") ? "Cyril E. King Airport" : candidates[0];
+      const next = candidates.includes("Cyril E. King Airport")
+        ? "Cyril E. King Airport"
+        : candidates[0];
       setDropoff(next);
     }
     if (!pickup) setPickup(candidates[0]);
     if (!dropoff) setDropoff(candidates[1] || candidates[0]);
-  }, [island, islandLocations, pickup, dropoff]); 
+  }, [island, islandLocations, pickup, dropoff]);
 
   /* --------------------- Resolve route (canonicalize) -------------------- */
   const [resolved, setResolved] = useState(null);
@@ -244,7 +263,10 @@ export default function HomePage() {
               signal: ac.signal,
             });
           } catch (e) {
-            logger.warn?.("resolveRoute server failed; using local fallback", e);
+            logger.warn?.(
+              "resolveRoute server failed; using local fallback",
+              e
+            );
           }
         }
 
@@ -301,7 +323,10 @@ export default function HomePage() {
 
         const j = await r.json().catch(() => ({}));
         if (!r.ok || !Number.isFinite(j?.amountCents)) {
-          throw Object.assign(new Error("preview_failed"), { code: j?.error || "preview_failed", detail: j });
+          throw Object.assign(new Error("preview_failed"), {
+            code: j?.error || "preview_failed",
+            detail: j,
+          });
         }
         setServerPrice({
           fare: j.amountCents / 100,
@@ -356,7 +381,11 @@ export default function HomePage() {
     !busy &&
     !routeLoading &&
     !priceLoading &&
-    !(routeErr && (routeErr === "cross_island_not_supported" || routeErr === "location_not_found"));
+    !(
+      routeErr &&
+      (routeErr === "cross_island_not_supported" ||
+        routeErr === "location_not_found")
+    );
 
   const ensureSignedIn = async () => {
     if (auth.currentUser) return auth.currentUser;
@@ -380,8 +409,12 @@ export default function HomePage() {
       const useIsland = resolved?.island || island;
       const puName = resolved?.from?.name || pickup;
       const doName = resolved?.to?.name || dropoff;
-      const puCoords = resolved ? { lat: resolved.from.lat, lng: resolved.from.lng } : locationCoords[pickup];
-      const doCoords = resolved ? { lat: resolved.to.lat, lng: resolved.to.lng } : locationCoords[dropoff];
+      const puCoords = resolved
+        ? { lat: resolved.from.lat, lng: resolved.from.lng }
+        : locationCoords[pickup];
+      const doCoords = resolved
+        ? { lat: resolved.to.lat, lng: resolved.to.lng }
+        : locationCoords[dropoff];
 
       const rideId = await createRideRequest({
         pickup: puName,
@@ -450,7 +483,9 @@ export default function HomePage() {
   function stopSession() {
     if (dataChannel) dataChannel.close();
     if (peerConnection.current) {
-      peerConnection.current.getSenders().forEach((s) => s.track && s.track.stop());
+      peerConnection.current
+        .getSenders()
+        .forEach((s) => s.track && s.track.stop());
       peerConnection.current.close();
     }
     setIsSessionActive(false);
@@ -503,7 +538,12 @@ export default function HomePage() {
   }, [dataChannel]);
 
   /* ------------------------------ Render -------------------------------- */
-  const islandLabel = island === "STT" ? "St. Thomas" : island === "STJ" ? "St. John" : "St. Croix";
+  const islandLabel =
+    island === "STT"
+      ? "St. Thomas"
+      : island === "STJ"
+      ? "St. John"
+      : "St. Croix";
   const ctaBtn = { fontWeight: 800, borderRadius: 2, textTransform: "none" };
 
   // High-contrast input styling for the glass card
@@ -511,9 +551,15 @@ export default function HomePage() {
     "& .MuiInputBase-input": { color: "rgba(255,255,255,0.98)" },
     "& .MuiInputLabel-root": { color: "rgba(255,255,255,0.85)" },
     "& .MuiInputLabel-root.Mui-focused": { color: "#fff" },
-    "& .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.35)" },
-    "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.55)" },
-    "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#fff" },
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "rgba(255,255,255,0.35)",
+    },
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "rgba(255,255,255,0.55)",
+    },
+    "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#fff",
+    },
     "& .MuiSvgIcon-root, & .MuiInputAdornment-root, & .MuiSelect-icon": {
       color: "rgba(255,255,255,0.9)",
     },
@@ -533,26 +579,45 @@ export default function HomePage() {
           }}
         >
           <Toolbar sx={{ gap: 2 }}>
-            <img src="/openai-logomark.svg" width={26} height={26} alt="App logo" style={{ borderRadius: 6 }} />
+            <img
+              src="/openai-logomark.svg"
+              width={26}
+              height={26}
+              alt="App logo"
+              style={{ borderRadius: 6 }}
+            />
             <Typography fontWeight={900} sx={{ letterSpacing: 1 }}>
               USVI EXPLORER
             </Typography>
 
             <Stack direction="row" spacing={1} sx={{ ml: "auto" }}>
-              <Button onClick={() => navigate("/routes")} color="inherit" startIcon={<AltRouteRoundedIcon />}>
+              <Button
+                onClick={() => navigate("/routes")}
+                color="inherit"
+                startIcon={<AltRouteRoundedIcon />}
+              >
                 Routes
               </Button>
-              <Button onClick={() => navigate("/beaches")} color="inherit" startIcon={<BeachAccessRoundedIcon />}>
+              <Button
+                onClick={() => navigate("/beaches")}
+                color="inherit"
+                startIcon={<BeachAccessRoundedIcon />}
+              >
                 Beaches
               </Button>
-              <Button onClick={() => navigate("/events")} color="inherit" startIcon={<EventAvailableRoundedIcon />}>
+              <Button
+                onClick={() => navigate("/events")}
+                color="inherit"
+                startIcon={<EventAvailableRoundedIcon />}
+              >
                 Events
               </Button>
             </Stack>
           </Toolbar>
         </AppBar>
       </HideOnScroll>
-      <Toolbar />{/* spacer */}
+      <Toolbar />
+      {/* spacer */}
 
       {/* Hero */}
       <Box
@@ -591,7 +656,13 @@ export default function HomePage() {
                 bgcolor: "rgba(255,255,255,0.08)",
                 borderRadius: 999,
                 border: "1px solid rgba(255,255,255,.3)",
-                "& .MuiToggleButton-root": { border: 0, px: 2.2, py: 0.7, fontWeight: 800, color: "white" },
+                "& .MuiToggleButton-root": {
+                  border: 0,
+                  px: 2.2,
+                  py: 0.7,
+                  fontWeight: 800,
+                  color: "white",
+                },
               }}
             >
               <ToggleButton value="STT">St. Thomas</ToggleButton>
@@ -602,12 +673,17 @@ export default function HomePage() {
             <Typography
               variant="h2"
               align="center"
-              sx={{ fontWeight: 900, letterSpacing: 1, textShadow: "0 6px 40px rgba(0,0,0,.5)" }}
+              sx={{
+                fontWeight: 900,
+                letterSpacing: 1,
+                textShadow: "0 6px 40px rgba(0,0,0,.5)",
+              }}
             >
               Book trusted rides across {islandLabel}
             </Typography>
             <Typography align="center" sx={{ opacity: 0.95, maxWidth: 820 }}>
-              Real-time routes, transparent pricing, and hand-picked highlights across the USVI.
+              Real-time routes, transparent pricing, and hand-picked highlights
+              across the USVI.
             </Typography>
 
             {/* Booking Card */}
@@ -657,10 +733,19 @@ export default function HomePage() {
                 </Grid>
 
                 {/* Swap */}
-                <Grid item xs={12} md="auto" sx={{ display: "flex", justifyContent: "center" }}>
+                <Grid
+                  item
+                  xs={12}
+                  md="auto"
+                  sx={{ display: "flex", justifyContent: "center" }}
+                >
                   <Tooltip title="Swap">
                     <span>
-                      <IconButton onClick={handleSwap} size="small" sx={{ color: "white" }}>
+                      <IconButton
+                        onClick={handleSwap}
+                        size="small"
+                        sx={{ color: "white" }}
+                      >
                         <SwapVertIcon />
                       </IconButton>
                     </span>
@@ -725,27 +810,45 @@ export default function HomePage() {
                   )}
 
                   {resolved && (
-                    <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+                    <Stack
+                      direction="row"
+                      spacing={1}
+                      alignItems="center"
+                      sx={{ mb: 1 }}
+                    >
                       <Chip
                         size="small"
                         label={`Route: ${resolved.routeId}`}
                         variant="outlined"
-                        sx={{ color: "#fff", borderColor: "rgba(255,255,255,.4)" }}
+                        sx={{
+                          color: "#fff",
+                          borderColor: "rgba(255,255,255,.4)",
+                        }}
                       />
                       <Chip
                         size="small"
                         label={`Island: ${resolved.island}`}
                         variant="outlined"
-                        sx={{ color: "#fff", borderColor: "rgba(255,255,255,.4)" }}
+                        sx={{
+                          color: "#fff",
+                          borderColor: "rgba(255,255,255,.4)",
+                        }}
                       />
                       <Chip
                         size="small"
                         label={`ETA: ~${resolved.durationMin} min`}
                         variant="outlined"
-                        sx={{ color: "#fff", borderColor: "rgba(255,255,255,.4)" }}
+                        sx={{
+                          color: "#fff",
+                          borderColor: "rgba(255,255,255,.4)",
+                        }}
                       />
                       <Tooltip title="Show route debug">
-                        <IconButton size="small" onClick={() => setShowDebug((v) => !v)} sx={{ color: "white" }}>
+                        <IconButton
+                          size="small"
+                          onClick={() => setShowDebug((v) => !v)}
+                          sx={{ color: "white" }}
+                        >
                           <BugReportIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
@@ -779,9 +882,14 @@ export default function HomePage() {
                           px: 3.2,
                           py: 1.6,
                           borderRadius: 2,
-                          background: "linear-gradient(90deg, #22c55e 0%, #16a34a 50%, #22c55e 100%)",
-                          boxShadow: "0 10px 25px rgba(34,197,94,.35), inset 0 -2px 0 rgba(0,0,0,.2)",
-                          ":disabled": { background: "rgba(255,255,255,.14)", color: "white" },
+                          background:
+                            "linear-gradient(90deg, #22c55e 0%, #16a34a 50%, #22c55e 100%)",
+                          boxShadow:
+                            "0 10px 25px rgba(34,197,94,.35), inset 0 -2px 0 rgba(0,0,0,.2)",
+                          ":disabled": {
+                            background: "rgba(255,255,255,.14)",
+                            color: "white",
+                          },
                         }}
                       >
                         {busy
@@ -789,7 +897,9 @@ export default function HomePage() {
                           : priceLoading || routeLoading
                           ? "Fetching price…"
                           : fareNum != null
-                          ? `BOOK • $${fareNum.toFixed(2)}${serverPrice ? "" : " (est)"}`
+                          ? `BOOK • $${fareNum.toFixed(2)}${
+                              serverPrice ? "" : " (est)"
+                            }`
                           : "BOOK"}
                       </Button>
                     </Grid>
@@ -799,26 +909,42 @@ export default function HomePage() {
                         label="Usually quick pickup"
                         size="small"
                         variant="outlined"
-                        sx={{ color: "white", borderColor: "rgba(255,255,255,.4)" }}
+                        sx={{
+                          color: "white",
+                          borderColor: "rgba(255,255,255,.4)",
+                        }}
                       />
                     </Grid>
                   </Grid>
 
                   {BACKEND_ENABLED && !!priceErr && (
                     <Typography sx={{ mt: 1.2 }} color="error">
-                      Price preview unavailable. You can still book; the price will be confirmed on the next screen.
+                      Price preview unavailable. You can still book; the price
+                      will be confirmed on the next screen.
                     </Typography>
                   )}
 
                   <Collapse in={showDebug} unmountOnExit>
-                    <Paper sx={{ mt: 1, p: 1.5, background: "rgba(255,255,255,.08)" }} variant="outlined">
+                    <Paper
+                      sx={{
+                        mt: 1,
+                        p: 1.5,
+                        background: "rgba(255,255,255,.08)",
+                      }}
+                      variant="outlined"
+                    >
                       <Typography variant="caption" sx={{ opacity: 0.9 }}>
-                        <strong>Resolved</strong>: {resolved?.from?.name} → {resolved?.to?.name} ({resolved?.island})
+                        <strong>Resolved</strong>: {resolved?.from?.name} →{" "}
+                        {resolved?.to?.name} ({resolved?.island})
                         <br />
                         <strong>routeId</strong>: {resolved?.routeId}
                         <br />
                         <strong>serverPrice</strong>:{" "}
-                        {serverPrice ? `$${serverPrice.fare.toFixed(2)} (est:${serverPrice.estimated ? "yes" : "no"})` : "—"}
+                        {serverPrice
+                          ? `$${serverPrice.fare.toFixed(2)} (est:${
+                              serverPrice.estimated ? "yes" : "no"
+                            })`
+                          : "—"}
                       </Typography>
                     </Paper>
                   </Collapse>
@@ -850,10 +976,19 @@ export default function HomePage() {
             backgroundColor: "#f7fbff",
           }}
         >
-          <Typography variant="h6" sx={{ mb: 1, fontWeight: 800, color: "#0b2a4a" }}>
+          <Typography
+            variant="h6"
+            sx={{ mb: 1, fontWeight: 800, color: "#0b2a4a" }}
+          >
             Explore your route
           </Typography>
-          <Box sx={{ height: { xs: 280, md: 420 }, borderRadius: 2, overflow: "hidden" }}>
+          <Box
+            sx={{
+              height: { xs: 280, md: 420 },
+              borderRadius: 2,
+              overflow: "hidden",
+            }}
+          >
             <HomeMap
               island={island}
               onIslandChange={setIsland}
@@ -911,14 +1046,24 @@ export default function HomePage() {
             p: 2,
             borderRadius: 3,
             border: "1px solid #e6eef7",
-            background: "linear-gradient(180deg, rgba(2,6,23,0.03), rgba(2,6,23,0.04))",
+            background:
+              "linear-gradient(180deg, rgba(2,6,23,0.03), rgba(2,6,23,0.04))",
           }}
         >
           <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
-            <Box sx={{ flex: 1, minHeight: 200, maxHeight: 360, overflowY: "auto" }}>
+            <Box
+              sx={{
+                flex: 1,
+                minHeight: 200,
+                maxHeight: 360,
+                overflowY: "auto",
+              }}
+            >
               <EventLog events={events} />
             </Box>
-            <Box sx={{ width: { xs: "100%", md: 360 }, display: "grid", gap: 1 }}>
+            <Box
+              sx={{ width: { xs: "100%", md: 360 }, display: "grid", gap: 1 }}
+            >
               <SessionControls
                 startSession={startSession}
                 stopSession={stopSession}
@@ -939,7 +1084,9 @@ export default function HomePage() {
 
         {/* Footer */}
         <Box mt={6} mb={4} textAlign="center" color="text.secondary">
-          <Typography variant="body2">© {new Date().getFullYear()} VIBER · Terms · Privacy · Contact</Typography>
+          <Typography variant="body2">
+            © {new Date().getFullYear()} VIBER · Terms · Privacy · Contact
+          </Typography>
         </Box>
       </Container>
 
@@ -967,7 +1114,10 @@ function WaveDivider() {
         opacity: 0.98,
       }}
     >
-      <path d="M0,40 C240,100 480,0 720,40 C960,80 1200,20 1440,60 L1440,120 L0,120 Z" fill="#F7FBFC" />
+      <path
+        d="M0,40 C240,100 480,0 720,40 C960,80 1200,20 1440,60 L1440,120 L0,120 Z"
+        fill="#F7FBFC"
+      />
     </svg>
   );
 }
@@ -975,7 +1125,7 @@ function WaveDivider() {
 function EventStrip({ island, onAll }) {
   const [mode, setMode] = useState("week"); // 'today' | 'week' | 'all'
   const [loading, setLoading] = useState(true);
-  const [eventsAsc, setEventsAsc] = useState([]);   // startDate asc (future-ish)
+  const [eventsAsc, setEventsAsc] = useState([]); // startDate asc (future-ish)
   const [eventsDesc, setEventsDesc] = useState([]); // startDate desc (recent past)
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -983,7 +1133,11 @@ function EventStrip({ island, onAll }) {
     if (!ts) return null;
     if (typeof ts.toDate === "function") return ts.toDate();
     if (ts.seconds) return new Date(ts.seconds * 1000);
-    try { return new Date(ts); } catch { return null; }
+    try {
+      return new Date(ts);
+    } catch {
+      return null;
+    }
   };
 
   useEffect(() => {
@@ -999,7 +1153,10 @@ function EventStrip({ island, onAll }) {
           limit(60)
         );
         const ascSnap = await getDocs(qAsc);
-        const asc = ascSnap.docs.map((d) => ({ id: d.id, ...(d.data() || {}) }));
+        const asc = ascSnap.docs.map((d) => ({
+          id: d.id,
+          ...(d.data() || {}),
+        }));
 
         // Small recent-past window (ordered desc) – used as fallback
         const qDesc = query(
@@ -1008,7 +1165,10 @@ function EventStrip({ island, onAll }) {
           limit(40)
         );
         const descSnap = await getDocs(qDesc);
-        const desc = descSnap.docs.map((d) => ({ id: d.id, ...(d.data() || {}) }));
+        const desc = descSnap.docs.map((d) => ({
+          id: d.id,
+          ...(d.data() || {}),
+        }));
 
         if (!active) return;
         setEventsAsc(asc);
@@ -1022,33 +1182,43 @@ function EventStrip({ island, onAll }) {
         if (active) setLoading(false);
       }
     })();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [refreshKey]);
 
   const visible = useMemo(() => {
     const now = new Date();
-    const weekEnd = new Date(now); weekEnd.setDate(weekEnd.getDate() + 7);
+    const weekEnd = new Date(now);
+    weekEnd.setDate(weekEnd.getDate() + 7);
 
-    const matchIsland = (ev) => !island || (ev.island || "").toUpperCase() === island;
+    const matchIsland = (ev) =>
+      !island || (ev.island || "").toUpperCase() === island;
     const s = (ev) => toDate(ev.startDate);
     const e = (ev) => toDate(ev.endDate) || s(ev);
 
     const isToday = (ev) => {
-      const d = s(ev); return d && d.toDateString() === now.toDateString();
+      const d = s(ev);
+      return d && d.toDateString() === now.toDateString();
     };
     const isWeek = (ev) => {
-      const d = s(ev); return d && d >= now && d <= weekEnd;
+      const d = s(ev);
+      return d && d >= now && d <= weekEnd;
     };
     const isUpcoming = (ev) => {
-      const end = e(ev); return end && end >= now;
+      const end = e(ev);
+      return end && end >= now;
     };
 
     // prefer future list first
     let base = eventsAsc;
     let filtered;
-    if (mode === "today") filtered = base.filter((ev) => matchIsland(ev) && isToday(ev));
-    else if (mode === "week") filtered = base.filter((ev) => matchIsland(ev) && isWeek(ev));
-    else /* all */ filtered = base.filter((ev) => matchIsland(ev) && isUpcoming(ev));
+    if (mode === "today")
+      filtered = base.filter((ev) => matchIsland(ev) && isToday(ev));
+    else if (mode === "week")
+      filtered = base.filter((ev) => matchIsland(ev) && isWeek(ev));
+    /* all */ else
+      filtered = base.filter((ev) => matchIsland(ev) && isUpcoming(ev));
 
     // If empty for today/week/all-upcoming, fall back to recent past
     if (filtered.length === 0 && mode !== "all") {
@@ -1076,7 +1246,12 @@ function EventStrip({ island, onAll }) {
         border: "1px solid #e6eef7",
       }}
     >
-      <Stack direction="row" alignItems="center" spacing={2} sx={{ flexWrap: "wrap" }}>
+      <Stack
+        direction="row"
+        alignItems="center"
+        spacing={2}
+        sx={{ flexWrap: "wrap" }}
+      >
         <Typography variant="h6" fontWeight={800}>
           This Week in the USVI
         </Typography>
@@ -1087,7 +1262,10 @@ function EventStrip({ island, onAll }) {
           exclusive
           onChange={(_, v) => v && setMode(v)}
           size="small"
-          sx={{ ml: 1, "& .MuiToggleButton-root": { px: 1.4, py: 0.3, border: 0 } }}
+          sx={{
+            ml: 1,
+            "& .MuiToggleButton-root": { px: 1.4, py: 0.3, border: 0 },
+          }}
         >
           <ToggleButton value="today">Today</ToggleButton>
           <ToggleButton value="week">This Week</ToggleButton>
@@ -1104,16 +1282,35 @@ function EventStrip({ island, onAll }) {
           </Typography>
         ) : (
           visible.map((ev) => {
-            const start = ev.startDate?.toDate ? ev.startDate.toDate() : new Date(ev.startDate);
-            const label = `${start?.toLocaleDateString()} • ${ev.title} (${(ev.island || "").toUpperCase()})`;
-            return <Chip key={ev.id} label={label} size="small" sx={{ mr: 1, mb: 1 }} />;
+            const start = ev.startDate?.toDate
+              ? ev.startDate.toDate()
+              : new Date(ev.startDate);
+            const label = `${start?.toLocaleDateString()} • ${ev.title} (${(
+              ev.island || ""
+            ).toUpperCase()})`;
+            return (
+              <Chip
+                key={ev.id}
+                label={label}
+                size="small"
+                sx={{ mr: 1, mb: 1 }}
+              />
+            );
           })
         )}
 
         <Stack direction="row" sx={{ ml: "auto" }} spacing={1}>
-          <Chip onClick={onAll} clickable label="All events" variant="outlined" />
+          <Chip
+            onClick={onAll}
+            clickable
+            label="All events"
+            variant="outlined"
+          />
           <Tooltip title="Refresh">
-            <IconButton onClick={() => setRefreshKey((k) => k + 1)} size="small">
+            <IconButton
+              onClick={() => setRefreshKey((k) => k + 1)}
+              size="small"
+            >
               <RefreshIcon fontSize="small" />
             </IconButton>
           </Tooltip>
@@ -1125,7 +1322,12 @@ function EventStrip({ island, onAll }) {
 
 /** Ride shortcuts with alias support */
 function RideShortcuts({ island, onQuickSet }) {
-  const firstKnown = (names) => (Array.isArray(names) ? names.find(hasCoords) : hasCoords(names) ? names : null);
+  const firstKnown = (names) =>
+    Array.isArray(names)
+      ? names.find(hasCoords)
+      : hasCoords(names)
+      ? names
+      : null;
 
   const ROUTES = [
     // STT
@@ -1137,7 +1339,11 @@ function RideShortcuts({ island, onQuickSet }) {
     },
     {
       island: "STT",
-      from: ["Havensight Cruise Port", "Yacht Haven - Havensight", "Yacht Haven Grande"],
+      from: [
+        "Havensight Cruise Port",
+        "Yacht Haven - Havensight",
+        "Yacht Haven Grande",
+      ],
       to: ["Magens Bay"],
       label: "Havensight → Magens",
     },
@@ -1163,7 +1369,7 @@ function RideShortcuts({ island, onQuickSet }) {
     },
   ];
 
-  const filtered = ROUTES.filter((r) => (!island || r.island === island))
+  const filtered = ROUTES.filter((r) => !island || r.island === island)
     .map((r) => {
       const from = firstKnown(r.from);
       const to = firstKnown(r.to);
@@ -1175,8 +1381,20 @@ function RideShortcuts({ island, onQuickSet }) {
   if (filtered.length === 0) return null;
 
   return (
-    <Box sx={{ mt: 2.5, mb: 1, display: "flex", flexWrap: "wrap", gap: 1, alignItems: "center" }}>
-      <Typography variant="subtitle1" sx={{ mr: 1, fontWeight: 800, color: "#0b2a4a" }}>
+    <Box
+      sx={{
+        mt: 2.5,
+        mb: 1,
+        display: "flex",
+        flexWrap: "wrap",
+        gap: 1,
+        alignItems: "center",
+      }}
+    >
+      <Typography
+        variant="subtitle1"
+        sx={{ mr: 1, fontWeight: 800, color: "#0b2a4a" }}
+      >
         Quick rides:
       </Typography>
       {filtered.map((s) => (
@@ -1205,10 +1423,14 @@ function BeachHighlights({ island, onAll }) {
         const snap = await getDocs(qFeatured);
         let items = snap.docs.map((d) => ({ id: d.id, ...(d.data() || {}) }));
         items = items.filter((b) => b.featured === true);
-        if (island) items = items.filter((b) => (b.island || "").toUpperCase() === island);
+        if (island)
+          items = items.filter(
+            (b) => (b.island || "").toUpperCase() === island
+          );
         if (items.length === 0) {
           let any = snap.docs.map((d) => ({ id: d.id, ...(d.data() || {}) }));
-          if (island) any = any.filter((b) => (b.island || "").toUpperCase() === island);
+          if (island)
+            any = any.filter((b) => (b.island || "").toUpperCase() === island);
           items = any.slice(0, 6);
         } else {
           items = items.slice(0, 6);
@@ -1225,68 +1447,79 @@ function BeachHighlights({ island, onAll }) {
 
   return (
     <Box sx={{ py: { xs: 4, md: 6 } }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+        sx={{ mb: 2 }}
+      >
         <Typography variant="h5" fontWeight={800}>
           Featured Beaches
         </Typography>
         <Chip label="See all" onClick={onAll} clickable />
       </Stack>
       <Grid container spacing={3}>
-        {beaches === null
-          ? Array.from({ length: 6 }).map((_, i) => (
-              <Grid key={i} item xs={12} sm={6} md={4}>
-                <Skeleton variant="rounded" height={260} />
-              </Grid>
-            ))
-          : beaches.length === 0
-          ? (
-            <Grid item xs={12}>
-              <Paper sx={{ p: 2, textAlign: "center" }}>
-                <Typography variant="body2" color="text.secondary">
-                  No beaches found yet. Add some to your Firestore <code>beaches</code> collection with fields:{" "}
-                  <code>name, island, imageUrl, description, featured, slug</code>.
-                </Typography>
-              </Paper>
+        {beaches === null ? (
+          Array.from({ length: 6 }).map((_, i) => (
+            <Grid key={i} item xs={12} sm={6} md={4}>
+              <Skeleton variant="rounded" height={260} />
             </Grid>
-            )
-          : beaches.map((b) => (
-              <Grid key={b.id} item xs={12} sm={6} md={4}>
-                <Card sx={{ height: "100%" }}>
-                  <CardActionArea onClick={onAll}>
-                    <CardMedia
-                      component="img"
-                      height="180"
-                      src={
-                        b.imageUrl ||
-                        `/images/${(b.slug || b.name || "beach")
-                          .toString()
-                          .toLowerCase()
-                          .replace(/\s+/g, "-")}.jpg`
-                      }
-                      alt={b.name || "Beach"}
-                      onError={(e) => {
-                        e.currentTarget.src = "/images/placeholder-beach.jpg";
-                      }}
-                    />
-                    <CardContent>
-                      <Stack spacing={0.5}>
-                        <Typography variant="h6" fontWeight={800}>
-                          {b.name || "Untitled Beach"}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {b.description || "A perfect spot to swim, snorkel, and relax."}
-                        </Typography>
-                        <Stack direction="row" spacing={1} sx={{ pt: 1 }}>
-                          <Chip size="small" label={(b.island || "").toUpperCase()} />
-                          <Chip size="small" label="Swim" variant="outlined" />
-                          <Chip size="small" label="Snorkel" variant="outlined" />
-                        </Stack>
+          ))
+        ) : beaches.length === 0 ? (
+          <Grid item xs={12}>
+            <Paper sx={{ p: 2, textAlign: "center" }}>
+              <Typography variant="body2" color="text.secondary">
+                No beaches found yet. Add some to your Firestore{" "}
+                <code>beaches</code> collection with fields:{" "}
+                <code>name, island, imageUrl, description, featured, slug</code>
+                .
+              </Typography>
+            </Paper>
+          </Grid>
+        ) : (
+          beaches.map((b) => (
+            <Grid key={b.id} item xs={12} sm={6} md={4}>
+              <Card sx={{ height: "100%" }}>
+                <CardActionArea onClick={onAll}>
+                  <CardMedia
+                    component="img"
+                    height="180"
+                    src={
+                      b.imageUrl ||
+                      `/images/${(b.slug || b.name || "beach")
+                        .toString()
+                        .toLowerCase()
+                        .replace(/\s+/g, "-")}.jpg`
+                    }
+                    alt={b.name || "Beach"}
+                    onError={(e) => {
+                      e.currentTarget.src = "/images/placeholder-beach.jpg";
+                    }}
+                  />
+                  <CardContent>
+                    <Stack spacing={0.5}>
+                      <Typography variant="h6" fontWeight={800}>
+                        {b.name || "Untitled Beach"}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {b.description ||
+                          "A perfect spot to swim, snorkel, and relax."}
+                      </Typography>
+                      <Stack direction="row" spacing={1} sx={{ pt: 1 }}>
+                        <Chip
+                          size="small"
+                          label={(b.island || "").toUpperCase()}
+                        />
+                        <Chip size="small" label="Swim" variant="outlined" />
+                        <Chip size="small" label="Snorkel" variant="outlined" />
                       </Stack>
-                    </CardContent>
-                  </CardActionArea>
-                </Card>
-              </Grid>
-            ))}
+                    </Stack>
+                  </CardContent>
+                </CardActionArea>
+              </Card>
+            </Grid>
+          ))
+        )}
       </Grid>
     </Box>
   );

@@ -2,13 +2,13 @@
   "name": "usvi-explorer",
   "version": "0.3.0",
   "private": true,
-  "proxy": "http://localhost:5001",
   "scripts": {
-    "start": "concurrently \"npm run start:api\" \"npm run start:web\"",
-    "start:web": "HOST=0.0.0.0 PORT=3000 BROWSER=none WDS_SOCKET_PORT=443 craco start",
-    "start:api": "nodemon --config nodemon.json",
-    "build": "craco build",
-    "test": "craco test",
+    "dev": "npm run start:web",
+    "start:web": "DANGEROUSLY_DISABLE_HOST_CHECK=true BROWSER=none WDS_SOCKET_PORT=0 react-scripts start",
+    "start:api": "nodemon --signal SIGTERM server.js",
+    "start": "npm run start:web",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
     "eject": "react-scripts eject",
     "lint": "eslint src --ext .js,.jsx --fix"
   },
@@ -55,7 +55,6 @@
     "web-vitals": "^3.1.0"
   },
   "devDependencies": {
-    "@craco/craco": "^7.1.0",
     "concurrently": "^8.2.2",
     "eslint": "^8.57.0",
     "eslint-plugin-react": "^7.35.0",
@@ -70,6 +69,7 @@
   },
   "overrides": {
     "typescript": "4.9.5"
+    
   },
   "browserslist": {
     "production": [
