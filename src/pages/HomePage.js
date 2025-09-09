@@ -45,7 +45,7 @@ import EventAvailableRoundedIcon from "@mui/icons-material/EventAvailableRounded
 import EventLog from "../components/EventLog";
 import SessionControls from "../components/SessionControls";
 import ToolPanel from "../components/ToolPanel";
-
+import RefreshIcon from "@mui/icons-material/Refresh";
 import { useNavigate, useLocation } from "react-router-dom";
 import { collection, getDocs, limit, orderBy, query } from "firebase/firestore";
 import { signInAnonymously } from "firebase/auth";
@@ -191,9 +191,10 @@ export default function HomePage() {
   }, [search]);
 
   // per-island filtered list
-  const islandLocations = useMemo(() => {
-    return allLocationNames.filter((n) => sameIsland(n, island)).sort();
-  }, [island]);
+  const islandLocations = useMemo(
+    () => allLocationNames.filter((n) => sameIsland(n, island)).sort(),
+    [island]
+  );
 
   // auto-correct selections that don’t belong to current island
   useEffect(() => {
@@ -209,7 +210,7 @@ export default function HomePage() {
     }
     if (!pickup) setPickup(candidates[0]);
     if (!dropoff) setDropoff(candidates[1] || candidates[0]);
-  }, [island, islandLocations]); 
+  }, [island, islandLocations, pickup, dropoff]); 
 
   /* --------------------- Resolve route (canonicalize) -------------------- */
   const [resolved, setResolved] = useState(null);
@@ -505,6 +506,19 @@ export default function HomePage() {
   const islandLabel = island === "STT" ? "St. Thomas" : island === "STJ" ? "St. John" : "St. Croix";
   const ctaBtn = { fontWeight: 800, borderRadius: 2, textTransform: "none" };
 
+  // High-contrast input styling for the glass card
+  const inputSx = {
+    "& .MuiInputBase-input": { color: "rgba(255,255,255,0.98)" },
+    "& .MuiInputLabel-root": { color: "rgba(255,255,255,0.85)" },
+    "& .MuiInputLabel-root.Mui-focused": { color: "#fff" },
+    "& .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.35)" },
+    "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.55)" },
+    "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#fff" },
+    "& .MuiSvgIcon-root, & .MuiInputAdornment-root, & .MuiSelect-icon": {
+      color: "rgba(255,255,255,0.9)",
+    },
+  };
+
   return (
     <>
       {/* Top AppBar (elevates on scroll) */}
@@ -571,13 +585,7 @@ export default function HomePage() {
             <ToggleButtonGroup
               exclusive
               value={island}
-              onChange={(_, v) => {
-                if (!v) return;
-                setIsland(v);
-                const sp = new URLSearchParams(window.location.search);
-                sp.set("island", v);
-                window.history.replaceState(null, "", `?${sp.toString()}`);
-              }}
+              onChange={(_, v) => v && setIsland(v)}
               color="secondary"
               sx={{
                 bgcolor: "rgba(255,255,255,0.08)",
@@ -613,9 +621,9 @@ export default function HomePage() {
                 maxWidth: 980,
                 borderRadius: 4,
                 p: { xs: 2, md: 3 },
-                backdropFilter: "saturate(140%) blur(10px)",
-                backgroundColor: "rgba(255,255,255,.10)",
-                border: "1px solid rgba(255,255,255,.22)",
+                backdropFilter: "saturate(150%) blur(10px)",
+                backgroundColor: "rgba(9,20,40,.32)",
+                border: "1px solid rgba(255,255,255,.18)",
                 boxShadow: "0 18px 45px rgba(0,0,0,.45)",
               }}
             >
@@ -627,6 +635,7 @@ export default function HomePage() {
                     fullWidth
                     label="Pickup"
                     value={pickup}
+                    sx={inputSx}
                     onChange={(e) => {
                       const v = e.target.value;
                       if (sameIsland(v, island)) setPickup(v);
@@ -665,6 +674,7 @@ export default function HomePage() {
                     fullWidth
                     label="Dropoff"
                     value={dropoff}
+                    sx={inputSx}
                     onChange={(e) => {
                       const v = e.target.value;
                       if (sameIsland(v, island)) setDropoff(v);
@@ -684,6 +694,7 @@ export default function HomePage() {
                     type="number"
                     label="Pax"
                     value={passengers}
+                    sx={inputSx}
                     onChange={(e) => setPassengers(e.target.value)}
                     inputProps={{ min: 1, max: 10 }}
                     fullWidth
@@ -697,6 +708,7 @@ export default function HomePage() {
                     label="Pickup time"
                     type="datetime-local"
                     value={pickupTime}
+                    sx={inputSx}
                     onChange={(e) => setPickupTime(e.target.value)}
                     InputLabelProps={{ shrink: true }}
                   />
@@ -714,9 +726,24 @@ export default function HomePage() {
 
                   {resolved && (
                     <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-                      <Chip size="small" label={`Route: ${resolved.routeId}`} />
-                      <Chip size="small" label={`Island: ${resolved.island}`} />
-                      <Chip size="small" label={`ETA: ~${resolved.durationMin} min`} />
+                      <Chip
+                        size="small"
+                        label={`Route: ${resolved.routeId}`}
+                        variant="outlined"
+                        sx={{ color: "#fff", borderColor: "rgba(255,255,255,.4)" }}
+                      />
+                      <Chip
+                        size="small"
+                        label={`Island: ${resolved.island}`}
+                        variant="outlined"
+                        sx={{ color: "#fff", borderColor: "rgba(255,255,255,.4)" }}
+                      />
+                      <Chip
+                        size="small"
+                        label={`ETA: ~${resolved.durationMin} min`}
+                        variant="outlined"
+                        sx={{ color: "#fff", borderColor: "rgba(255,255,255,.4)" }}
+                      />
                       <Tooltip title="Show route debug">
                         <IconButton size="small" onClick={() => setShowDebug((v) => !v)} sx={{ color: "white" }}>
                           <BugReportIcon fontSize="small" />
@@ -731,6 +758,7 @@ export default function HomePage() {
                         fullWidth
                         label="Promo code"
                         value={promo}
+                        sx={inputSx}
                         onChange={(e) => setPromo(e.target.value)}
                         InputProps={{
                           startAdornment: (
@@ -945,33 +973,96 @@ function WaveDivider() {
 }
 
 function EventStrip({ island, onAll }) {
-  const [events, setEvents] = useState(null);
+  const [mode, setMode] = useState("week"); // 'today' | 'week' | 'all'
+  const [loading, setLoading] = useState(true);
+  const [eventsAsc, setEventsAsc] = useState([]);   // startDate asc (future-ish)
+  const [eventsDesc, setEventsDesc] = useState([]); // startDate desc (recent past)
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const toDate = (ts) => {
+    if (!ts) return null;
+    if (typeof ts.toDate === "function") return ts.toDate();
+    if (ts.seconds) return new Date(ts.seconds * 1000);
+    try { return new Date(ts); } catch { return null; }
+  };
 
   useEffect(() => {
     let active = true;
     (async () => {
       try {
-        if (!db) throw new Error("Firestore not initialized");
-        const qy = query(collection(db, "events"), orderBy("startDate", "asc"), limit(12));
-        const snap = await getDocs(qy);
-        const now = new Date();
-        let docs = snap.docs.map((d) => ({ id: d.id, ...(d.data() || {}) }));
-        docs = docs.filter((ev) => {
-          const date = ev.startDate?.toDate ? ev.startDate.toDate() : new Date(ev.startDate);
-          const okDate = date && date >= now;
-          const okIsland = island ? (ev.island || "").toUpperCase() === island : true;
-          return okDate && okIsland;
-        });
-        docs = docs.slice(0, 6);
-        if (active) setEvents(docs);
-      } catch {
-        if (active) setEvents([]);
+        setLoading(true);
+
+        // Small future window (ordered asc)
+        const qAsc = query(
+          collection(db, "events"),
+          orderBy("startDate", "asc"),
+          limit(60)
+        );
+        const ascSnap = await getDocs(qAsc);
+        const asc = ascSnap.docs.map((d) => ({ id: d.id, ...(d.data() || {}) }));
+
+        // Small recent-past window (ordered desc) – used as fallback
+        const qDesc = query(
+          collection(db, "events"),
+          orderBy("startDate", "desc"),
+          limit(40)
+        );
+        const descSnap = await getDocs(qDesc);
+        const desc = descSnap.docs.map((d) => ({ id: d.id, ...(d.data() || {}) }));
+
+        if (!active) return;
+        setEventsAsc(asc);
+        setEventsDesc(desc);
+      } catch (e) {
+        if (!active) return;
+        console.error("EventStrip fetch failed:", e);
+        setEventsAsc([]);
+        setEventsDesc([]);
+      } finally {
+        if (active) setLoading(false);
       }
     })();
-    return () => {
-      active = false;
+    return () => { active = false; };
+  }, [refreshKey]);
+
+  const visible = useMemo(() => {
+    const now = new Date();
+    const weekEnd = new Date(now); weekEnd.setDate(weekEnd.getDate() + 7);
+
+    const matchIsland = (ev) => !island || (ev.island || "").toUpperCase() === island;
+    const s = (ev) => toDate(ev.startDate);
+    const e = (ev) => toDate(ev.endDate) || s(ev);
+
+    const isToday = (ev) => {
+      const d = s(ev); return d && d.toDateString() === now.toDateString();
     };
-  }, [island]);
+    const isWeek = (ev) => {
+      const d = s(ev); return d && d >= now && d <= weekEnd;
+    };
+    const isUpcoming = (ev) => {
+      const end = e(ev); return end && end >= now;
+    };
+
+    // prefer future list first
+    let base = eventsAsc;
+    let filtered;
+    if (mode === "today") filtered = base.filter((ev) => matchIsland(ev) && isToday(ev));
+    else if (mode === "week") filtered = base.filter((ev) => matchIsland(ev) && isWeek(ev));
+    else /* all */ filtered = base.filter((ev) => matchIsland(ev) && isUpcoming(ev));
+
+    // If empty for today/week/all-upcoming, fall back to recent past
+    if (filtered.length === 0 && mode !== "all") {
+      filtered = eventsDesc
+        .filter((ev) => {
+          const end = e(ev);
+          return matchIsland(ev) && end && end < now;
+        })
+        .slice(0, 6);
+      return filtered;
+    }
+
+    return filtered.slice(0, 6);
+  }, [mode, island, eventsAsc, eventsDesc]);
 
   return (
     <Paper
@@ -989,22 +1080,43 @@ function EventStrip({ island, onAll }) {
         <Typography variant="h6" fontWeight={800}>
           This Week in the USVI
         </Typography>
+
+        {/* Tabs: Today / Week / All */}
+        <ToggleButtonGroup
+          value={mode}
+          exclusive
+          onChange={(_, v) => v && setMode(v)}
+          size="small"
+          sx={{ ml: 1, "& .MuiToggleButton-root": { px: 1.4, py: 0.3, border: 0 } }}
+        >
+          <ToggleButton value="today">Today</ToggleButton>
+          <ToggleButton value="week">This Week</ToggleButton>
+          <ToggleButton value="all">All</ToggleButton>
+        </ToggleButtonGroup>
+
         <Divider orientation="vertical" flexItem />
-        {events === null ? (
+
+        {loading ? (
           <Skeleton variant="text" width={220} />
-        ) : events.length === 0 ? (
+        ) : visible.length === 0 ? (
           <Typography variant="body2" color="text.secondary">
-            No upcoming events found.
+            No events to show.
           </Typography>
         ) : (
-          events.map((ev) => {
-            const when = ev.startDate?.toDate ? ev.startDate.toDate() : new Date(ev.startDate);
-            const label = `${when.toLocaleDateString()} • ${ev.title} (${(ev.island || "").toUpperCase()})`;
+          visible.map((ev) => {
+            const start = ev.startDate?.toDate ? ev.startDate.toDate() : new Date(ev.startDate);
+            const label = `${start?.toLocaleDateString()} • ${ev.title} (${(ev.island || "").toUpperCase()})`;
             return <Chip key={ev.id} label={label} size="small" sx={{ mr: 1, mb: 1 }} />;
           })
         )}
-        <Stack direction="row" sx={{ ml: "auto" }}>
+
+        <Stack direction="row" sx={{ ml: "auto" }} spacing={1}>
           <Chip onClick={onAll} clickable label="All events" variant="outlined" />
+          <Tooltip title="Refresh">
+            <IconButton onClick={() => setRefreshKey((k) => k + 1)} size="small">
+              <RefreshIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
         </Stack>
       </Stack>
     </Paper>
