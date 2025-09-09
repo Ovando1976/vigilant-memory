@@ -27,31 +27,29 @@ const logger = (() => {
 })();
 
 /* ----------------------------- Strict config ------------------------------ */
-const PORT = Number(process.env.PORT || 5001);
-const BASE_CLIENT_URL = process.env.BASE_CLIENT_URL || "http://localhost:3000";
+const { loadConfig } = require("./config");
+const { initStripe, handleEvent: handleStripeEvent } = require("./stripe");
+let CONFIG;
+try {
+  CONFIG = loadConfig();
+} catch (err) {
+  logger.error(err.message);
+  process.exit(1);
+}
+const {
+  PORT,
+  BASE_CLIENT_URL,
+  STRIPE_SECRET_KEY,
+  STRIPE_WEBHOOK_SECRET,
+  OPENAI_API_KEY,
+} = CONFIG;
 const MIN_CHARGE_CENTS = 50;
 const DEV_NO_STRICT_DB = process.env.NODE_ENV !== "production";
 const WRITE_ESTIMATED_RATES =
   String(process.env.WRITE_ESTIMATED_RATES || "false").toLowerCase() === "true";
-
-/* -------------------------------- Stripe --------------------------------- */
-const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
-if (!STRIPE_SECRET_KEY) {
-  logger.error("STRIPE_SECRET_KEY is not defined.");
-  process.exit(1);
-}
-if (!/^sk_(test|live)_/.test(STRIPE_SECRET_KEY)) {
-  logger.error(
-    `[Stripe] STRIPE_SECRET_KEY must start with sk_test_ or sk_live_. Got: ${
-      STRIPE_SECRET_KEY ? STRIPE_SECRET_KEY.slice(0, 8) + "…" : "(empty)"
-    }`
-  );
-  process.exit(1);
-}
-const stripe = require("stripe")(STRIPE_SECRET_KEY);
+const stripe = initStripe(STRIPE_SECRET_KEY);
 
 /* -------------------------------- OpenAI --------------------------------- */
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 if (!OPENAI_API_KEY) {
   logger.warn("⚠️  OPENAI_API_KEY is not defined; /api/chat* will return 500.");
 }
@@ -173,18 +171,20 @@ app.post(
   "/api/stripe-webhook",
   express.raw({ type: "application/json" }),
   (req, res) => {
-    const secret = process.env.STRIPE_WEBHOOK_SECRET;
+    const secret = STRIPE_WEBHOOK_SECRET;
     let event = req.body;
     try {
       if (secret) {
         const sig = req.headers["stripe-signature"];
         event = stripe.webhooks.constructEvent(req.body, sig, secret);
+      } else {
+        event = JSON.parse(req.body);
       }
     } catch (e) {
       logger.error("Webhook signature verify failed:", e.message);
       return res.sendStatus(400);
     }
-    // TODO: handle events e.g., payment_intent.succeeded, checkout.session.completed
+    handleStripeEvent(event);
     res.json({ received: true });
   }
 );
